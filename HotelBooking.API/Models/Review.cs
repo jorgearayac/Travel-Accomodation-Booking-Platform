@@ -1,0 +1,14 @@
+﻿namespace HotelBooking.API.Models;
+
+public class Review
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public int HotelId { get; set; }
+    public int Rating { get; set; } // numbers between 1 and 5
+    public string? Comment { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime UpdatedDate { get; set; }
+
+    // Navigation properties: To be implemented
+}
