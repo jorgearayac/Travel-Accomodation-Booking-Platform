@@ -7,5 +7,7 @@ public class VisitedHotel
     public int HotelId { get; set; }
     public DateTime VisitDate { get; set; }
 
-    // Navigation properties: To be implemented
+    // Navigation properties
+    public User User { get; set; } = null!;
+    public Hotel Hotel { get; set; } = null!;
 }

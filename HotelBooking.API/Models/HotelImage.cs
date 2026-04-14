@@ -9,5 +9,6 @@ public class HotelImage
     public DateTime CreatedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
 
-    // Navigation properties: To be implemented
+    // Navigation properties
+    public Hotel Hotel { get; set; } = null!;
 }

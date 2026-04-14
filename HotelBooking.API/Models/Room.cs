@@ -17,5 +17,7 @@ public class Room
     public DateTime CreatedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
 
-    // Navigation properties: To be implemented
+    // Navigation properties
+    public Hotel Hotel { get; set; } = null!;
+    public ICollection<BookingRoom> BookingRooms { get; set; } = new List<BookingRoom>();
 }

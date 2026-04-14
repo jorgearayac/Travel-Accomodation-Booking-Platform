@@ -9,5 +9,6 @@ public class City
     public DateTime CreatedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
 
-    // Navigation properties: To be implemented
+    // Navigation properties
+    public ICollection<Hotel> Hotels { get; set; } = new List<Hotel>();
 }

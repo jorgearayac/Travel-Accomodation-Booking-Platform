@@ -7,5 +7,7 @@ public class BookingRoom
     public int RoomId { get; set; }
     public decimal PriceAtBooking { get; set; }
 
-    // Navigation properties: To be implemented
+    // Navigation properties
+    public Booking Booking { get; set; } = null!;
+    public Room Room { get; set; } = null!;
 }

@@ -21,5 +21,8 @@ public class User
     public DateTime CreatedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
 
-    // Navigation properties: To be implemented
+    // Navigation properties
+    public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    public ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public ICollection<VisitedHotel> VisitedHotels { get; set; } = new List<VisitedHotel>();
 }

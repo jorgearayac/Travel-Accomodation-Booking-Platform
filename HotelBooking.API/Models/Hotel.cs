@@ -15,5 +15,11 @@ public class Hotel
     public DateTime CreatedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
 
-    // Navigation properties: To be implemented
+    // Navigation properties
+    public City City { get; set; } = null!;
+    public ICollection<Room> Rooms { get; set; } = new List<Room>();
+    public ICollection<HotelImage> HotelImages { get; set; } = new List<HotelImage>();
+    public ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public ICollection<FeaturedDeal> FeaturedDeals { get; set; } = new List<FeaturedDeal>();
+    public ICollection<VisitedHotel> VisitedHotels { get; set; } = new List<VisitedHotel>();
 }
