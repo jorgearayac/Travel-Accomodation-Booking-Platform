@@ -2,6 +2,9 @@
 
 namespace HotelBooking.API.Models;
 
+/// <summary>
+/// Represents a booking made by a user in the hotel booking system.
+/// </summary>
 public class Booking
 {
     public int Id { get; set; }

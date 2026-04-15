@@ -1,5 +1,8 @@
 ﻿namespace HotelBooking.API.Models;
 
+/// <summary>
+/// Represents a hotel that a user has visited before in the hotel booking system.
+/// </summary>
 public class VisitedHotel
 {
     public int Id { get; set; }

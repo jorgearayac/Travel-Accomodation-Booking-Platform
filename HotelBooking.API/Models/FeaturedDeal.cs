@@ -1,5 +1,8 @@
 ﻿namespace HotelBooking.API.Models;
 
+/// <summary>
+/// Represents a featured deal for a hotel in the hotel booking system. This entity is used to highlight special offers.
+/// </summary>
 public class FeaturedDeal
 {
     public int Id { get; set; }

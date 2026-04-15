@@ -1,5 +1,8 @@
 ﻿namespace HotelBooking.API.Models;
 
+/// <summary>
+/// Represents a city in the hotel booking system.
+/// </summary>
 public class City
 {
     public int Id { get; set; }

@@ -1,5 +1,8 @@
 ﻿namespace HotelBooking.API.Models;
 
+/// <summary>
+/// Represents a review left by a user for a hotel in the hotel booking system.
+/// </summary>
 public class Review
 {
     public int Id { get; set; }

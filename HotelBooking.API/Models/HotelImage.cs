@@ -1,5 +1,8 @@
 ﻿namespace HotelBooking.API.Models;
 
+/// <summary>
+/// Represent an image associated with a hotel in the hotel booking system.
+/// </summary>
 public class HotelImage
 {
     public int Id { get; set; }
