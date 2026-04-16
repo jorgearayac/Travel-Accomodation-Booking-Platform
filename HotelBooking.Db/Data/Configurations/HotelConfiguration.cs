@@ -20,5 +20,7 @@ public class HotelConfiguration : IEntityTypeConfiguration<Hotel>
             .WithMany(c => c.Hotels)
             .HasForeignKey(h => h.CityId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.ToTable(t => t.HasCheckConstraint("CK_Hotel_StarRate", "[StarRate] >= 1 AND [StarRate] <= 5"));
     }
 }

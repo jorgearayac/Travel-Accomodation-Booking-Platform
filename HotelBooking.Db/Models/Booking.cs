@@ -1,4 +1,5 @@
 ﻿using HotelBooking.Db.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace HotelBooking.Db.Models;
 
@@ -12,7 +13,17 @@ public class Booking
     public required string ConfirmationNumber { get; set; }
     public DateTime CheckInDate { get; set; }
     public DateTime CheckOutDate { get; set; }
+
+    /// <summary>
+    /// Number of adults for the booking. Default = 1.
+    /// </summary>
+    [Range(1, 10)]
     public int NumberOfAdults { get; set; }
+
+    /// <summary>
+    /// Number of children for the booking. Default = 0.
+    /// </summary>
+    [Range(0, 10)]
     public int NumberOfChildren { get; set; }
     public PaymentMethod PaymentMethod { get; set; }
     public string? SpecialRequests { get; set; }

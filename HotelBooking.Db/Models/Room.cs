@@ -1,4 +1,5 @@
 ﻿using HotelBooking.Db.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace HotelBooking.Db.Models;
 
@@ -11,7 +12,17 @@ public class Room
     public int HotelId { get; set; }
     public required string RoomNumber { get; set; }
     public RoomType RoomType { get; set; }
+
+    /// <summary>
+    /// Adult capacity for a room. Default = 1.
+    /// </summary>
+    [Range(1, 10)]
     public int AdultCapacity { get; set; }
+
+    /// <summary>
+    /// Children capacity for a room. Default = 0.
+    /// </summary>
+    [Range(0, 10)]
     public int ChildCapacity { get; set; }
     public required string Description { get; set; }
     public decimal PricePerNight { get; set; }

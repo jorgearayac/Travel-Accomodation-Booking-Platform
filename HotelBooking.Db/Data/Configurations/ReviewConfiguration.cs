@@ -21,5 +21,7 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .WithMany(u => u.Reviews)
             .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.ToTable(t => t.HasCheckConstraint("CK_Review_Rating", "[Rating] >= 1 AND [Rating] <= 5"));
     }
 }

@@ -20,5 +20,8 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .WithMany(u => u.Bookings)
             .HasForeignKey(b => b.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.ToTable(t => t.HasCheckConstraint("CK_Booking_NumberOfAdults", "[NumberOfAdults] >= 1 AND [NumberOfAdults] <= 10"));
+        builder.ToTable(t => t.HasCheckConstraint("CK_Booking_NumberOfChildren", "[NumberOfChildren] >= 0 AND [NumberOfChildren] <= 10"));
     }
 }

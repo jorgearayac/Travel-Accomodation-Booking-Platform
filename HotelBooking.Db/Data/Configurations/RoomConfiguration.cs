@@ -20,5 +20,8 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
             .WithMany(h => h.Rooms)
             .HasForeignKey(r => r.HotelId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.ToTable(t => t.HasCheckConstraint("CK_Room_AdultCapacity", "[AdultCapacity] >= 1 AND [AdultCapacity] <= 10"));
+        builder.ToTable(t => t.HasCheckConstraint("CK_Room_ChildCapacity", "[ChildCapacity] >= 0 AND [ChildCapacity] <= 10"));
     }
 }
