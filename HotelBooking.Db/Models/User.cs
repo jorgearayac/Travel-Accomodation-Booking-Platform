@@ -23,5 +23,4 @@ public class User
     // Navigation properties
     public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
-    public ICollection<VisitedHotel> VisitedHotels { get; set; } = new List<VisitedHotel>();
 }

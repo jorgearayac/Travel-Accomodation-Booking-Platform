@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using HotelBooking.Db.Models;
+using HotelBooking.Db.Data.Configurations;
 
 namespace HotelBooking.Db.Data;
 
@@ -18,10 +19,10 @@ public class HotelBookingDbContext : DbContext
     public DbSet<Review> Reviews { get; set; }
     public DbSet<HotelImage> HotelImages { get; set; }
     public DbSet<FeaturedDeal> FeaturedDeals { get; set; }
-    public DbSet<VisitedHotel> VisitedHotels { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // to be implemented in separate files for better organization
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(HotelBookingDbContext).Assembly);
     }
 }
