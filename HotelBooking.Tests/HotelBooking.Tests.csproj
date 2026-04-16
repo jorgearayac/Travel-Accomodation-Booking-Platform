@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HotelBooking.API\HotelBooking.API.csproj" />
+    <ProjectReference Include="..\HotelBooking.Db\HotelBooking.Db.csproj" />
   </ItemGroup>
 
   <ItemGroup>
