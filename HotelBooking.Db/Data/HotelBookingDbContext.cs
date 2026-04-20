@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using HotelBooking.Db.Enums;
 using HotelBooking.Db.Models;
-using HotelBooking.Db.Data.Configurations;
+using HotelBooking.Db.Data.Seeds;
 
 namespace HotelBooking.Db.Data;
 
@@ -24,5 +25,7 @@ public class HotelBookingDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(HotelBookingDbContext).Assembly);
+        // Seed one admin user for testing
+        AdminSeed.Seed(modelBuilder);
     }
 }
