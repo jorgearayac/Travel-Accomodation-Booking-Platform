@@ -1,0 +1,103 @@
+﻿using HotelBooking.API.DTOs.Hotels;
+using HotelBooking.API.Interfaces;
+using HotelBooking.Db.Interfaces;
+using HotelBooking.Db.Models;
+using HotelBooking.Db.Repositories;
+
+namespace HotelBooking.API.Services;
+
+public class HotelService : IHotelService
+{
+    private readonly IHotelRepository _hotelRepository;
+
+    public HotelService(IHotelRepository hotelRepository)
+    {
+        _hotelRepository = hotelRepository;
+    }
+    public async Task<IEnumerable<HotelResponse>> GetAllHotelsAsync()
+    {
+        var hotels = await _hotelRepository.GetAllWithRoomsAsync();
+        return hotels.Select(MapToResponse);
+    }
+
+    public async Task<HotelResponse> GetHotelByIdAsync(int id)
+    {
+        var hotel = await _hotelRepository.GetByIdWithRoomsAsync(id);
+        if (hotel == null)
+        {
+            throw new KeyNotFoundException($"Hotel with Id {id} not found.");
+        }
+        return MapToResponse(hotel);
+    }
+
+    public async Task<HotelResponse> CreateHotelAsync(HotelRequest request)
+    {
+        var hotel = new Hotel
+        {
+            CityId = request.CityId,
+            Name = request.Name,
+            StarRate = request.StarRate,
+            Owner = request.Owner,
+            Description = request.Description,
+            PricePerNight = request.PricePerNight,
+            Latitude = request.Latitude,
+            Longitude = request.Longitude,
+            ThumbnailUrl = request.ThumbnailUrl,
+            CreatedDate = DateTime.UtcNow,
+            UpdatedDate = DateTime.UtcNow
+        };
+        await _hotelRepository.AddAsync(hotel);
+        return MapToResponse(hotel);
+    }
+
+    public async Task<HotelResponse> UpdateHotelAsync(int id, HotelRequest request)
+    {
+        var hotel = await _hotelRepository.GetByIdAsync(id);
+        if (hotel == null)
+        {
+            throw new KeyNotFoundException($"Hotel with Id {id} not found.");
+        }
+        hotel.CityId = request.CityId; // may refactor later
+        hotel.Name = request.Name;
+        hotel.StarRate = request.StarRate;
+        hotel.Owner = request.Owner;
+        hotel.Description = request.Description;
+        hotel.PricePerNight = request.PricePerNight;
+        hotel.Latitude = request.Latitude;
+        hotel.Longitude = request.Longitude;
+        hotel.ThumbnailUrl = request.ThumbnailUrl;
+        hotel.UpdatedDate = DateTime.UtcNow;
+
+        await _hotelRepository.UpdateAsync(hotel);
+        return MapToResponse(hotel);
+    }
+    public async Task DeleteHotelAsync(int id)
+    {
+        var hotel = await _hotelRepository.GetByIdAsync(id);
+        if (hotel == null)
+        {
+            throw new KeyNotFoundException($"Hotel with Id {id} not found.");
+        }
+        await _hotelRepository.DeleteAsync(hotel);
+    }
+
+    // Helper method to map Hotel entity to HotelResponse DTO
+    private HotelResponse MapToResponse(Hotel hotel)
+    {
+        return new HotelResponse
+        {
+            Id = hotel.Id,
+            Name = hotel.Name,
+            StarRate = hotel.StarRate,
+            Owner = hotel.Owner,
+            Description = hotel.Description,
+            PricePerNight = hotel.PricePerNight,
+            Latitude = hotel.Latitude,
+            Longitude = hotel.Longitude,
+            ThumbnailUrl = hotel.ThumbnailUrl,
+            NumberOfRooms = hotel.Rooms?.Count ?? 0,
+            CreatedDate = hotel.CreatedDate,
+            UpdatedDate = hotel.UpdatedDate
+        };
+    }
+}
