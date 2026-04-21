@@ -7,6 +7,16 @@ namespace HotelBooking.Db.Interfaces;
 /// </summary>
 public interface ICityRepository : IRepository<City>
 {
-    // Empty for now
-    // All CRUD comes from IRepository<City>
+    /// <summary>
+    /// Retrieves all cities, including their associated hotels.
+    /// </summary>
+    /// <returns>A collection of cities with their associated hotels.</returns>
+    Task<IEnumerable<City>> GetAllWithHotelsAsync();
+    
+    /// <summary>
+    /// Retrieves a city by its Id, including its associated hotels.
+    /// </summary>
+    /// <param name="id">The Id of the city to retrieve.</param>
+    /// <returns>The city with its associated hotels, or null if not found.</returns>
+    Task<City?> GetByIdWithHotelsAsync(int id);
 }
