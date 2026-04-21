@@ -8,25 +8,17 @@ namespace HotelBooking.Db.Repositories;
 /// <summary>
 /// Repository implementation for managing user data in the database.
 /// </summary>
-public class UserRepository : IUserRepository
+public class UserRepository : Repository<User>, IUserRepository
 {
-    private readonly HotelBookingDbContext _context;
-    public UserRepository(HotelBookingDbContext context)
-    {
-        _context = context;
-    }
+    public UserRepository(HotelBookingDbContext context) : base(context) { }
+
     public async Task<User?> GetByUsernameAsync(string username)
     {
-        return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+        return await _dbSet.FirstOrDefaultAsync(u => u.Username == username);
     }
+
     public async Task<User?> GetByEmailAsync(string email)
     {
-        return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-    }
-    public async Task<User> AddAsync(User user)
-    {
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
-        return user;
+        return await _dbSet.FirstOrDefaultAsync(u => u.Email == email);
     }
 }

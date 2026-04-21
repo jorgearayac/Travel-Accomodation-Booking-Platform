@@ -5,7 +5,7 @@ namespace HotelBooking.Db.Interfaces;
 /// <summary>
 /// Repository interface for managing user data in the database.
 /// </summary>
-public interface IUserRepository
+public interface IUserRepository : IRepository<User>
 {
     /// <summary>
     /// Finds a user by their username.
@@ -20,11 +20,4 @@ public interface IUserRepository
     /// <param name="email">The email to search for.</param>
     /// <returns>The user, or null if not found.</returns>
     Task<User?> GetByEmailAsync(string email);
-
-    /// <summary>
-    /// Adds a new user to the database.
-    /// </summary>
-    /// <param name="user">The user to create.</param>
-    /// <returns>The created user with the generated Id.</returns>
-    Task<User> AddAsync(User user);
 }
