@@ -1,4 +1,5 @@
 ﻿using HotelBooking.API.DTOs.Hotels;
+using HotelBooking.API.DTOs.Pagination;
 using HotelBooking.API.Interfaces;
 using HotelBooking.API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -22,9 +23,9 @@ public class HotelsController : ControllerBase
     /// </summary>
     /// <returns>An <see cref="OkObjectResult"/> with a list of hotels.</returns>
     [HttpGet]
-    public async Task<IActionResult> GetAllHotels()
+    public async Task<IActionResult> GetAllHotels([FromQuery] PaginationRequest pagination)
     {
-        var hotels = await _hotelService.GetAllHotelsAsync();
+        var hotels = await _hotelService.GetAllHotelsAsync(pagination);
         return Ok(hotels);
     }
 

@@ -20,4 +20,16 @@ public class HotelRepository : Repository<Hotel>, IHotelRepository
         return await _dbSet.Include(h => h.Rooms)
             .FirstOrDefaultAsync(h => h.Id == id);
     }
+
+    public async Task<(IEnumerable<Hotel> Items, int TotalCount)> GetPaginatedWithRoomsAsync(int pageNumber, int pageSize)
+    {
+        var totalCount = await _dbSet.CountAsync();
+        var items = await _dbSet
+            .Include(h => h.Rooms)
+            .OrderBy(h => h.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        return (items, totalCount);
+    }
 }

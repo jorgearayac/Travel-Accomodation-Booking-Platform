@@ -19,4 +19,7 @@ public interface ICityRepository : IRepository<City>
     /// <param name="id">The Id of the city to retrieve.</param>
     /// <returns>The city with its associated hotels, or null if not found.</returns>
     Task<City?> GetByIdWithHotelsAsync(int id);
+
+    // Pagination method to retrieve cities with their associated hotels
+    Task<(IEnumerable<City> Items, int TotalCount)> GetPaginatedWithHotelsAsync(int pageNumber, int pageSize);
 }

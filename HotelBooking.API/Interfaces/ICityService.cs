@@ -1,4 +1,5 @@
 ﻿using HotelBooking.API.DTOs.Cities;
+using HotelBooking.API.DTOs.Pagination;
 
 namespace HotelBooking.API.Interfaces;
 
@@ -11,7 +12,7 @@ public interface ICityService
     /// Retrieves a list of all the cities available in the system.
     /// </summary>
     /// <returns>A collection of <see cref="CityResponse"/> objects representing the cities.</returns>
-    Task<IEnumerable<CityResponse>> GetAllCitiesAsync();
+    Task<PaginationResponse<CityResponse>> GetAllCitiesAsync(PaginationRequest pagination);
 
     /// <summary>
     /// Retrieves a city by its Id.

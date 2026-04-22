@@ -1,4 +1,5 @@
 ﻿using HotelBooking.API.DTOs.Hotels;
+using HotelBooking.API.DTOs.Pagination;
 
 namespace HotelBooking.API.Interfaces;
 
@@ -8,10 +9,10 @@ namespace HotelBooking.API.Interfaces;
 public interface IHotelService
 {
     /// <summary>
-    /// Retrieves a list of all hotels available in the system.
-    /// </summary>
+    /// Retrieves a list of all hotels available in the system with pagination.
+    /// </summary>  
     /// <returns>A collection of <see cref="HotelResponse"/>.</returns>
-    Task<IEnumerable<HotelResponse>> GetAllHotelsAsync();
+    Task<PaginationResponse<HotelResponse>> GetAllHotelsAsync(PaginationRequest pagination);
 
     /// <summary>
     /// Retrieves a hotel by its Id.

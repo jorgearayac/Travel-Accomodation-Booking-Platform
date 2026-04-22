@@ -19,4 +19,7 @@ public interface IHotelRepository : IRepository<Hotel>
     /// <param name="id">The Id of the hotel to retrieve.</param>
     /// <returns>The hotel with its rooms, or null if not found.</returns>
     Task<Hotel?> GetByIdWithRoomsAsync(int id);
+
+    // Pagination method to retrieve hotels with their rooms
+    Task<(IEnumerable<Hotel> Items, int TotalCount)> GetPaginatedWithRoomsAsync(int pageNumber, int pageSize);
 }

@@ -23,4 +23,16 @@ public class CityRepository : Repository<City>, ICityRepository
         return await _dbSet.Include(c => c.Hotels)
             .FirstOrDefaultAsync(c => c.Id == id);
     }
+
+    public async Task<(IEnumerable<City> Items, int TotalCount)> GetPaginatedWithHotelsAsync(int pageNumber, int pageSize)
+    {
+        var totalCount = await _dbSet.CountAsync();
+        var items = await _dbSet
+            .Include(c => c.Hotels)
+            .OrderBy(c => c.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        return (items, totalCount);
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using HotelBooking.API.DTOs.Cities;
+using HotelBooking.API.DTOs.Pagination;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Interfaces;
 using HotelBooking.Db.Models;
@@ -14,10 +15,21 @@ public class CityService : ICityService
         _cityRepository = cityRepository;
     }
 
-    public async Task<IEnumerable<CityResponse>> GetAllCitiesAsync()
+    public async Task<PaginationResponse<CityResponse>> GetAllCitiesAsync(PaginationRequest pagination)
     {
-        var cities = await _cityRepository.GetAllWithHotelsAsync();
-        return cities.Select(MapToResponse);
+        var (cities, totalCount) = await _cityRepository.GetPaginatedWithHotelsAsync(pagination.PageNumber, pagination.PageSize);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize); // Math.Ceiling to round up to the nearest whole number
+
+        return new PaginationResponse<CityResponse>
+        {
+            Items = cities.Select(MapToResponse),
+            TotalCount = totalCount,
+            PageNumber = pagination.PageNumber,
+            PageSize = pagination.PageSize,
+            TotalPages = totalPages,
+            HasPreviousPage = pagination.PageNumber > 1,
+            HasNextPage = pagination.PageNumber < totalPages
+        };
     }
 
     public async Task<CityResponse> GetCityByIdAsync(int id)

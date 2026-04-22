@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using HotelBooking.API.DTOs.Pagination;
 using HotelBooking.API.DTOs.Rooms;
 using HotelBooking.API.Interfaces;
 using HotelBooking.API.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBooking.API.Controllers;
 
@@ -18,9 +19,9 @@ public class RoomsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllRooms()
+    public async Task<IActionResult> GetAllRooms([FromQuery] PaginationRequest pagination)
     {
-        var rooms = await _roomService.GetAllRoomsAsync();
+        var rooms = await _roomService.GetAllRoomsAsync(pagination);
         return Ok(rooms);
     }
 

@@ -1,4 +1,6 @@
-﻿using HotelBooking.API.DTOs.Hotels;
+﻿using HotelBooking.API.DTOs.Cities;
+using HotelBooking.API.DTOs.Hotels;
+using HotelBooking.API.DTOs.Pagination;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Interfaces;
 using HotelBooking.Db.Models;
@@ -14,10 +16,21 @@ public class HotelService : IHotelService
     {
         _hotelRepository = hotelRepository;
     }
-    public async Task<IEnumerable<HotelResponse>> GetAllHotelsAsync()
+    public async Task<PaginationResponse<HotelResponse>> GetAllHotelsAsync(PaginationRequest pagination)
     {
-        var hotels = await _hotelRepository.GetAllWithRoomsAsync();
-        return hotels.Select(MapToResponse);
+        var (hotels, totalCount) = await _hotelRepository.GetPaginatedWithRoomsAsync(pagination.PageNumber, pagination.PageSize);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize); // Math.Ceiling to round up to the nearest whole number
+
+        return new PaginationResponse<HotelResponse>
+        {
+            Items = hotels.Select(MapToResponse),
+            TotalCount = totalCount,
+            PageNumber = pagination.PageNumber,
+            PageSize = pagination.PageSize,
+            TotalPages = totalPages,
+            HasPreviousPage = pagination.PageNumber > 1,
+            HasNextPage = pagination.PageNumber < totalPages
+        };
     }
 
     public async Task<HotelResponse> GetHotelByIdAsync(int id)
