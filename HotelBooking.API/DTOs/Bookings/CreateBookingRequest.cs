@@ -13,7 +13,7 @@ public class CreateBookingRequest
 
     [Range(0, 10)]
     public int NumberOfChildren { get; set; }
-    public required string PaymentMethod { get; set; }
+    public PaymentMethod PaymentMethod { get; set; }
     public string? SpecialRequests { get; set; }
     public required List<int> RoomIds { get; set; }
 }

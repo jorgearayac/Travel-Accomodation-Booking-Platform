@@ -9,7 +9,7 @@ public class RoomRepository : Repository<Room>, IRoomRepository
 {
     public RoomRepository(HotelBookingDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<Room>> GetByIdsAsync(List<int> ids)
+    public async Task<IEnumerable<Room>> GetRoomsByIdsAsync(List<int> ids)
     {
         return await _dbSet
             .Where(r => ids.Contains(r.Id))
