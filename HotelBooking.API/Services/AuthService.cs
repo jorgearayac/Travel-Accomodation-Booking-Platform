@@ -59,6 +59,8 @@ public class AuthService : IAuthService
         }
         return BuildAuthResponse(user);
     }
+    
+    // Helper method, refactor later
     private AuthResponse BuildAuthResponse(User user)
     {
         var token = _tokenService.GenerateToken(user);

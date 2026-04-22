@@ -55,6 +55,7 @@ public class CityService : ICityService
         city.Country = request.Country;
         city.PostOffice = request.PostOffice;
         city.UpdatedDate = DateTime.UtcNow;
+
         await _cityRepository.UpdateAsync(city);
         return MapToResponse(city);
     }
