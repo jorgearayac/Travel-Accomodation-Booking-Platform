@@ -41,6 +41,8 @@ builder.Services.AddScoped<IHotelRepository, HotelRepository>();
 builder.Services.AddScoped<IHotelService, HotelService>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 builder.Services.AddScoped<IRoomService, RoomService>();
+builder.Services.AddScoped<IFeaturedDealRepository, FeaturedDealRepository>();
+builder.Services.AddScoped<IFeaturedDealService, FeaturedDealService>();
 
 // Authentication
 builder.Services.AddAuthentication(options =>
