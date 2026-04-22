@@ -1,17 +1,23 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using HotelBooking.API.Interfaces;
 using HotelBooking.API.Services;
 using HotelBooking.Db.Data;
 using HotelBooking.Db.Interfaces;
 using HotelBooking.Db.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+// JSON configuration to handle enum values as strings - ex: RoomType strings instead of 0, 1, etc.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -33,6 +39,8 @@ builder.Services.AddScoped<ICityRepository, CityRepository>();
 builder.Services.AddScoped<ICityService, CityService>();
 builder.Services.AddScoped<IHotelRepository, HotelRepository>();
 builder.Services.AddScoped<IHotelService, HotelService>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<IRoomService, RoomService>();
 
 // Authentication
 builder.Services.AddAuthentication(options =>
