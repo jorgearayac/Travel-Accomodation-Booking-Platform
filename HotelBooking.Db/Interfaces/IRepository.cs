@@ -39,4 +39,7 @@ public interface IRepository<T> where T : class
     /// <param name="entity">The <typeparamref name="T"/> to delete.</param>
     /// <returns></returns>
     Task DeleteAsync(T entity);
+
+    // Pagination method
+    Task<(IEnumerable<T> Items, int TotalCount)> GetPaginatedAsync(int pageNumber, int pageSize);
 }

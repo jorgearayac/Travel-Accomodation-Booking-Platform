@@ -43,4 +43,15 @@ public class Repository<T> : IRepository<T> where T : class
         _dbSet.Remove(entity);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<(IEnumerable<T> Items, int TotalCount)> GetPaginatedAsync(int pageNumber, int pageSize)
+    {
+        var totalCount = await _dbSet.CountAsync();
+        var items = await _dbSet
+            .OrderBy(e => EF.Property<int>(e, "Id"))
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        return (items, totalCount);
+    }
 }
