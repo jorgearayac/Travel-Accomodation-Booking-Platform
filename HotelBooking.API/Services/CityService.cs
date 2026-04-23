@@ -49,6 +49,7 @@ public class CityService : ICityService
             Name = request.Name,
             Country = request.Country,
             PostOffice = request.PostOffice,
+            ThumbnailUrl = request.ThumbnailUrl,
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
         };
@@ -66,6 +67,7 @@ public class CityService : ICityService
         city.Name = request.Name;
         city.Country = request.Country;
         city.PostOffice = request.PostOffice;
+        city.ThumbnailUrl = request.ThumbnailUrl;
         city.UpdatedDate = DateTime.UtcNow;
 
         await _cityRepository.UpdateAsync(city);
@@ -91,6 +93,7 @@ public class CityService : ICityService
             Name = city.Name,
             Country = city.Country,
             PostOffice = city.PostOffice,
+            ThumbnailUrl = city.ThumbnailUrl,
             NumberOfHotels = city.Hotels?.Count ?? 0,
             CreatedDate = city.CreatedDate,
             UpdatedDate = city.UpdatedDate
