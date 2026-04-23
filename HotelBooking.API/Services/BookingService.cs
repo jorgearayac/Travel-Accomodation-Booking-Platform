@@ -87,6 +87,12 @@ public class BookingService : IBookingService
             PriceAtBooking = room.PricePerNight
         }).ToList();
 
+        // mark rooms as unavailable
+        foreach (var room in rooms)
+        {
+            room.Availability = false;
+        }
+
         await _bookingRepository.AddAsync(booking);
 
         // reload with details
