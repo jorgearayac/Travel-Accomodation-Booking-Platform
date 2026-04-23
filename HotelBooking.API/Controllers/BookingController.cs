@@ -7,13 +7,13 @@ using System.Security.Claims;
 namespace HotelBooking.API.Controllers;
 
 [ApiController]
-[Route("api/bookings")]
+[Route("api/booking")]
 [Authorize]
-public class BookingsControllers : ControllerBase
+public class BookingController : ControllerBase
 {
     private readonly IBookingService _bookingService;
 
-    public BookingsControllers(IBookingService bookingService)
+    public BookingController(IBookingService bookingService)
     {
         _bookingService = bookingService;
     }

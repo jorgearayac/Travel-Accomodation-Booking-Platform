@@ -100,6 +100,26 @@ public class BookingService : IBookingService
         return MapToResponse(createdBooking!);
     }
 
+    // method to get recently booked hotels for a user / user's recently visited hotels
+    public async Task<IEnumerable<RecentlyBookedHotelResponse>> GetRecentlyBookedHotelsAsync(int userId)
+    {
+        var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+        return bookings
+            .SelectMany(b => b.BookingRooms.Select(br => new RecentlyBookedHotelResponse
+            {
+                HotelId = br.Room.Hotel.Id,
+                HotelName = br.Room.Hotel.Name,
+                CityName = br.Room.Hotel.City.Name,
+                StarRate = br.Room.Hotel.StarRate,
+                PricePerNight = br.Room.Hotel.PricePerNight,
+                ThumbnailUrl = br.Room.Hotel.ThumbnailUrl,
+                BookingDate = b.CreatedDate
+            }))
+            .DistinctBy(h => h.HotelId)
+            .Take(5)
+            .ToList();
+    }
+
     // Helper method to map Booking entity to BookingResponse DTO
     private BookingResponse MapToResponse(Booking booking)
     {
