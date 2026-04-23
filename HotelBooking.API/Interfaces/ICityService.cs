@@ -1,4 +1,5 @@
 ﻿using HotelBooking.API.DTOs.Cities;
+using HotelBooking.API.DTOs.Home;
 using HotelBooking.API.DTOs.Pagination;
 
 namespace HotelBooking.API.Interfaces;
@@ -45,4 +46,10 @@ public interface ICityService
     /// <param name="id">The Id of the city to delete.</param>
     /// <exception cref="KeyNotFoundException">Thrown when no city with the specified Id is found.</exception>
     Task DeleteCityAsync(int id);
+
+    /// <summary>
+    /// Retrieves the top trending destinations based on booking count.
+    /// </summary>
+    /// <returns>A collection of <see cref="TrendingDestinationResponse"/> objects representing the trending destinations.</returns>
+    Task<IEnumerable<TrendingDestinationResponse>> GetTrendingDestinationsAsync();
 }

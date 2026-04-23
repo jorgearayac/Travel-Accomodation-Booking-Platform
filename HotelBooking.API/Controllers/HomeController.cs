@@ -13,14 +13,15 @@ public class HomeController : ControllerBase
 {
     private readonly IFeaturedDealService _featuredDealService;
     private readonly IBookingService _bookingService;
+    private readonly ICityService _cityService;
 
-    public HomeController(IFeaturedDealService featuredDealService, IBookingService bookingService)
+    public HomeController(IFeaturedDealService featuredDealService, IBookingService bookingService, ICityService cityService)
     {
         _featuredDealService = featuredDealService;
         _bookingService = bookingService;
+        _cityService = cityService;
     }
 
-    // GET /api/home/featured-deals
     [HttpGet("featured-deals")]
     public async Task<IActionResult> GetFeaturedDeals()
     {
@@ -28,14 +29,18 @@ public class HomeController : ControllerBase
         return Ok(deals);
     }
 
-    // GET /api/home/recently-booked
     [HttpGet("recently-booked")]
     public async Task<IActionResult> GetRecentlyBooked()
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        var recentHotels = await _bookingService.GetRecentlyBookedHotelsAsync(userId); 
+        var recentHotels = await _bookingService.GetRecentlyBookedHotelsAsync(userId);
         return Ok(recentHotels);
     }
 
-    // GET /api/home/trending-destinations
+    [HttpGet("trending-destinations")]
+    public async Task<IActionResult> GetTrendingDestinations()
+    {
+        var destinations = await _cityService.GetTrendingDestinationsAsync();
+        return Ok(destinations);
+    }
 }

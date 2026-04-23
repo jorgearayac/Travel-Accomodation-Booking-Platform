@@ -35,4 +35,18 @@ public class CityRepository : Repository<City>, ICityRepository
             .ToListAsync();
         return (items, totalCount);
     }
+
+    public async Task<IEnumerable<City>> GetTopBookedCitiesAsync(int count)
+    {
+        return await _dbSet
+            .Include(c => c.Hotels)
+            .ThenInclude(h => h.Rooms)
+            .ThenInclude(r => r.BookingRooms)
+            .OrderByDescending(c => c.Hotels
+            .SelectMany(h => h.Rooms)
+            .SelectMany(r => r.BookingRooms)
+            .Count())
+            .Take(count)
+            .ToListAsync();
+    }
 }

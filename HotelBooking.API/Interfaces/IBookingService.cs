@@ -1,5 +1,5 @@
 ﻿using HotelBooking.API.DTOs.Bookings;
-using HotelBooking.API.DTOs.Rooms;
+using HotelBooking.API.DTOs.Home;
 
 namespace HotelBooking.API.Interfaces;
 

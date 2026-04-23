@@ -1,4 +1,5 @@
 ﻿using HotelBooking.API.DTOs.Cities;
+using HotelBooking.API.DTOs.Home;
 using HotelBooking.API.DTOs.Pagination;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Interfaces;
@@ -82,6 +83,22 @@ public class CityService : ICityService
             throw new KeyNotFoundException($"City with Id {id} not found.");
         }
         await _cityRepository.DeleteAsync(city);
+    }
+
+    public async Task<IEnumerable<TrendingDestinationResponse>> GetTrendingDestinationsAsync()
+    {
+        var cities = await _cityRepository.GetTopBookedCitiesAsync(5);
+        return cities.Select(c => new TrendingDestinationResponse
+        {
+            CityId = c.Id,
+            CityName = c.Name,
+            Country = c.Country,
+            ThumbnailUrl = c.ThumbnailUrl ?? "", // "" for already created cities without thumbnail
+            BookingCount = c.Hotels
+                .SelectMany(h => h.Rooms)
+                .SelectMany(r => r.BookingRooms)
+                .Count()
+        });
     }
 
     // Helper method, refactor later

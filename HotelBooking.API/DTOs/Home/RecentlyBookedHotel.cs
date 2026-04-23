@@ -1,4 +1,6 @@
-﻿public class RecentlyBookedHotelResponse
+﻿namespace HotelBooking.API.DTOs.Home;
+
+public class RecentlyBookedHotelResponse
 {
     public int HotelId { get; set; }
     public required string HotelName { get; set; }

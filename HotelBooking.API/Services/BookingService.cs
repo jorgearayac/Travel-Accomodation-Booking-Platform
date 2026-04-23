@@ -1,6 +1,6 @@
 ﻿using Azure.Core;
 using HotelBooking.API.DTOs.Bookings;
-using HotelBooking.API.DTOs.Rooms;
+using HotelBooking.API.DTOs.Home;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Enums;
 using HotelBooking.Db.Interfaces;

@@ -22,4 +22,7 @@ public interface ICityRepository : IRepository<City>
 
     // Pagination method to retrieve cities with their associated hotels
     Task<(IEnumerable<City> Items, int TotalCount)> GetPaginatedWithHotelsAsync(int pageNumber, int pageSize);
+
+    // Method to retrieve the top booked cities based on booking data.
+    Task<IEnumerable<City>> GetTopBookedCitiesAsync(int count);
 }
