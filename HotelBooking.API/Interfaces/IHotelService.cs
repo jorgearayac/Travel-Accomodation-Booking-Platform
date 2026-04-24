@@ -53,4 +53,12 @@ public interface IHotelService
     /// <param name="request">The search request containing the search criteria.</param>
     /// <returns>A paginated response containing the search results.</returns>
     Task<PaginationResponse<HotelResponse>> SearchHotelsAsync(HotelSearchRequest request);
+
+    /// <summary>
+    /// Gets detailed information about a hotel, including its images, reviews, and available rooms.
+    /// </summary>
+    /// <param name="id">The Id of the hotel to retrieve details for.</param>
+    /// <returns>The <see cref="HotelDetailsResponse"/> containing detailed information about the hotel.</returns>
+    /// <exception cref="KeyNotFoundException">Thrown when no hotel with the specified Id is found.</exception>
+    Task<HotelDetailsResponse> GetHotelDetailsAsync(int id);
 }

@@ -34,4 +34,7 @@ public interface IHotelRepository : IRepository<Hotel>
         int children,
         int pageNumber,
         int pageSize);
+
+    // Method to get Hotels with full details
+    Task<Hotel?> GetByIdWithFullDetailsAsync(int id);
 }

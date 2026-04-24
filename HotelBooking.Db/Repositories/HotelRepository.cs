@@ -35,15 +35,15 @@ public class HotelRepository : Repository<Hotel>, IHotelRepository
     }
 
     public async Task<(IEnumerable<Hotel> Items, int TotalCount)> SearchAsync(
-    string? query,
-    decimal? minPrice,
-    decimal? maxPrice,
-    int? starRate,
-    string? roomType,
-    int adults,
-    int children,
-    int pageNumber,
-    int pageSize)
+        string? query,
+        decimal? minPrice,
+        decimal? maxPrice,
+        int? starRate,
+        string? roomType,
+        int adults,
+        int children,
+        int pageNumber,
+        int pageSize)
     {
         var queryable = _dbSet
             .Include(h => h.City)
@@ -98,5 +98,16 @@ public class HotelRepository : Repository<Hotel>, IHotelRepository
             .ToListAsync();
 
         return (items, totalCount);
+    }
+
+    public async Task<Hotel?> GetByIdWithFullDetailsAsync(int id)
+    {
+        return await _dbSet
+            .Include(h => h.City)
+            .Include(h => h.HotelImages)
+            .Include(h => h.Reviews)
+            .ThenInclude(r => r.User)
+            .Include(h => h.Rooms)
+            .FirstOrDefaultAsync(h => h.Id == id);
     }
 }

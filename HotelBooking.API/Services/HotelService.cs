@@ -1,5 +1,7 @@
 ﻿using HotelBooking.API.DTOs.Hotels;
 using HotelBooking.API.DTOs.Pagination;
+using HotelBooking.API.DTOs.Reviews;
+using HotelBooking.API.DTOs.Rooms;
 using HotelBooking.API.DTOs.Search;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Interfaces;
@@ -120,6 +122,16 @@ public class HotelService : IHotelService
         };
     }
 
+    public async Task<HotelDetailsResponse> GetHotelDetailsAsync(int id)
+    {
+        var hotel = await _hotelRepository.GetByIdWithFullDetailsAsync(id);
+        if (hotel == null)
+        {
+            throw new KeyNotFoundException($"Hotel with Id {id} not found.");
+        }
+        return MapToDetailsResponse(hotel);
+    }
+
     // Helper method to map Hotel entity to HotelResponse DTO
     private HotelResponse MapToResponse(Hotel hotel)
     {
@@ -137,6 +149,50 @@ public class HotelService : IHotelService
             NumberOfRooms = hotel.Rooms?.Count ?? 0,
             CreatedDate = hotel.CreatedDate,
             UpdatedDate = hotel.UpdatedDate
+        };
+    }
+
+    // Helper method to map Hotel entity to HotelDetailsResponse DTO, including related entities like images, reviews, and rooms
+    private HotelDetailsResponse MapToDetailsResponse(Hotel hotel)
+    {
+        return new HotelDetailsResponse
+        {
+            Id = hotel.Id,
+            Name = hotel.Name,
+            StarRate = hotel.StarRate,
+            Owner = hotel.Owner,
+            Description = hotel.Description,
+            PricePerNight = hotel.PricePerNight,
+            Latitude = hotel.Latitude,
+            Longitude = hotel.Longitude,
+            ThumbnailUrl = hotel.ThumbnailUrl,
+            CityName = hotel.City?.Name ?? string.Empty,
+            Images = hotel.HotelImages?.Select(hi => new HotelImageResponse
+            {
+                Id = hi.Id,
+                ImageUrl = hi.ImageUrl,
+                Caption = hi.Caption
+            }).ToList() ?? new List<HotelImageResponse>(),
+            Reviews = hotel.Reviews?.Select(r => new ReviewResponse
+            {
+                Id = r.Id,
+                UserId = r.UserId,
+                Username = r.User.Username,
+                Rating = r.Rating,
+                Comment = r.Comment,
+                CreatedDate = r.CreatedDate
+            }).ToList() ?? new List<ReviewResponse>(),
+            AvailableRooms = hotel.Rooms?.Where(r => r.Availability).Select(r => new RoomResponse
+            {
+                Id = r.Id,
+                RoomNumber = r.RoomNumber,
+                RoomType = r.RoomType,
+                AdultCapacity = r.AdultCapacity,
+                ChildCapacity = r.ChildCapacity,
+                Description = r.Description,
+                PricePerNight = r.PricePerNight,
+                ThumbnailUrl = r.ThumbnailUrl
+            }).ToList() ?? new List<RoomResponse>()
         };
     }
 }

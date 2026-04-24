@@ -110,4 +110,18 @@ public class HotelsController : ControllerBase
         var results = await _hotelService.SearchHotelsAsync(request);
         return Ok(results);
     }
+
+    [HttpGet("{id}/details")]
+    public async Task<IActionResult> GetHotelDetails(int id)
+    {
+        try
+        {
+            var hotel = await _hotelService.GetHotelDetailsAsync(id);
+            return Ok(hotel);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
 }
