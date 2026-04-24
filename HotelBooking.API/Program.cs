@@ -45,6 +45,8 @@ builder.Services.AddScoped<IFeaturedDealRepository, FeaturedDealRepository>();
 builder.Services.AddScoped<IFeaturedDealService, FeaturedDealService>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 // Authentication
 builder.Services.AddAuthentication(options =>

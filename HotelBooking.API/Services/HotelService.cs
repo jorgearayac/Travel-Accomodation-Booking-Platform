@@ -177,7 +177,9 @@ public class HotelService : IHotelService
             {
                 Id = r.Id,
                 UserId = r.UserId,
-                Username = r.User.Username,
+                Username = r.User?.Username ?? "Unknown User",
+                HotelId = r.HotelId,
+                HotelName = r.Hotel?.Name ?? "Unknown Hotel",
                 Rating = r.Rating,
                 Comment = r.Comment,
                 CreatedDate = r.CreatedDate
