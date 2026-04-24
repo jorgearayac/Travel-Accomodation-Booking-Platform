@@ -1,5 +1,6 @@
 ﻿using HotelBooking.API.DTOs.Hotels;
 using HotelBooking.API.DTOs.Pagination;
+using HotelBooking.API.DTOs.Search;
 using HotelBooking.API.Interfaces;
 using HotelBooking.API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -100,5 +101,13 @@ public class HotelsController : ControllerBase
         {
             return NotFound(ex.Message);
         }
+    }
+
+    // Search endpoint for hotels based on various criteria
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchHotels([FromQuery] HotelSearchRequest request)
+    {
+        var results = await _hotelService.SearchHotelsAsync(request);
+        return Ok(results);
     }
 }

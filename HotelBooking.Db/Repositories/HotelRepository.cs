@@ -1,4 +1,5 @@
 ﻿using HotelBooking.Db.Data;
+using HotelBooking.Db.Enums;
 using HotelBooking.Db.Interfaces;
 using HotelBooking.Db.Models;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,72 @@ public class HotelRepository : Repository<Hotel>, IHotelRepository
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
+        return (items, totalCount);
+    }
+
+    public async Task<(IEnumerable<Hotel> Items, int TotalCount)> SearchAsync(
+    string? query,
+    decimal? minPrice,
+    decimal? maxPrice,
+    int? starRate,
+    string? roomType,
+    int adults,
+    int children,
+    int pageNumber,
+    int pageSize)
+    {
+        var queryable = _dbSet
+            .Include(h => h.City)
+            .Include(h => h.Rooms)
+            .AsQueryable();
+
+        // text search: hotel name or city name
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            queryable = queryable.Where(h =>
+                h.Name.Contains(query) ||
+                h.City.Name.Contains(query));
+        }
+
+        // price range
+        if (minPrice.HasValue)
+        {
+            queryable = queryable.Where(h => h.PricePerNight >= minPrice.Value);
+        }
+        if (maxPrice.HasValue)
+        {
+            queryable = queryable.Where(h => h.PricePerNight <= maxPrice.Value);
+        }
+
+        // star rating
+        if (starRate.HasValue)
+        {
+            queryable = queryable.Where(h => h.StarRate >= starRate.Value);
+        }
+
+        // room type
+        if (!string.IsNullOrWhiteSpace(roomType))
+        {
+            var parsedRoomType = Enum.Parse<RoomType>(roomType);
+            queryable = queryable.Where(h => h.Rooms.Any(r => r.RoomType == parsedRoomType));
+        }
+
+        // room availability
+        queryable = queryable.Where(h => h.Rooms.Any(r =>
+            r.Availability &&
+            r.AdultCapacity >= adults &&
+            r.ChildCapacity >= children));
+
+        // total count before pagination
+        var totalCount = await queryable.CountAsync();
+
+        // pagination
+        var items = await queryable
+            .OrderBy(h => h.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
         return (items, totalCount);
     }
 }

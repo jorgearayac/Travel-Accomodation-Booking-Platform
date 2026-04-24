@@ -1,5 +1,6 @@
 ﻿using HotelBooking.API.DTOs.Hotels;
 using HotelBooking.API.DTOs.Pagination;
+using HotelBooking.API.DTOs.Search;
 
 namespace HotelBooking.API.Interfaces;
 
@@ -45,4 +46,11 @@ public interface IHotelService
     /// <returns></returns>
     /// <exception cref="KeyNotFoundException">Thrown when no hotel with the specified Id is found.</exception>"
     Task DeleteHotelAsync(int id);
+
+    /// <summary>
+    /// Searches for hotels based on the specified search criteria.
+    /// </summary>
+    /// <param name="request">The search request containing the search criteria.</param>
+    /// <returns>A paginated response containing the search results.</returns>
+    Task<PaginationResponse<HotelResponse>> SearchHotelsAsync(HotelSearchRequest request);
 }

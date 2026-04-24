@@ -1,10 +1,9 @@
-﻿using HotelBooking.API.DTOs.Cities;
-using HotelBooking.API.DTOs.Hotels;
+﻿using HotelBooking.API.DTOs.Hotels;
 using HotelBooking.API.DTOs.Pagination;
+using HotelBooking.API.DTOs.Search;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Interfaces;
 using HotelBooking.Db.Models;
-using HotelBooking.Db.Repositories;
 
 namespace HotelBooking.API.Services;
 
@@ -92,6 +91,33 @@ public class HotelService : IHotelService
             throw new KeyNotFoundException($"Hotel with Id {id} not found.");
         }
         await _hotelRepository.DeleteAsync(hotel);
+    }
+
+    public async Task<PaginationResponse<HotelResponse>> SearchHotelsAsync(HotelSearchRequest request)
+    {
+        var (hotels, totalCount) = await _hotelRepository.SearchAsync(
+            request.Query,
+            request.MinPrice,
+            request.MaxPrice,
+            request.StarRate,
+            request.RoomType,
+            request.Adults,
+            request.Children,
+            request.PageNumber,
+            request.PageSize);
+
+        var totalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize);
+
+        return new PaginationResponse<HotelResponse>
+        {
+            Items = hotels.Select(MapToResponse),
+            TotalCount = totalCount,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalPages = totalPages,
+            HasPreviousPage = request.PageNumber > 1,
+            HasNextPage = request.PageNumber < totalPages
+        };
     }
 
     // Helper method to map Hotel entity to HotelResponse DTO

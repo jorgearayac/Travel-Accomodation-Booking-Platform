@@ -22,4 +22,16 @@ public interface IHotelRepository : IRepository<Hotel>
 
     // Pagination method to retrieve hotels with their rooms
     Task<(IEnumerable<Hotel> Items, int TotalCount)> GetPaginatedWithRoomsAsync(int pageNumber, int pageSize);
+
+    // Search method to retrieve hotels based on search criteria with pagination
+    Task<(IEnumerable<Hotel> Items, int TotalCount)> SearchAsync(
+        string? query,
+        decimal? minPrice,
+        decimal? maxPrice,
+        int? starRate,
+        string? roomType,
+        int adults,
+        int children,
+        int pageNumber,
+        int pageSize);
 }
