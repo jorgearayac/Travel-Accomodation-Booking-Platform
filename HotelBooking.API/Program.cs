@@ -47,6 +47,8 @@ builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IHotelImageRepository, HotelImageRepository>();
+builder.Services.AddScoped<IHotelImageService, HotelImageService>();
 
 // Authentication
 builder.Services.AddAuthentication(options =>
