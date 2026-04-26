@@ -25,13 +25,15 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var response = await _authService.RegisterUserAsync(request);
-
-        if (response == null)
+        try
         {
-            return BadRequest("Username or email already exists.");
+            var response = await _authService.RegisterUserAsync(request);
+            return Ok(response);
         }
-        return Ok(response);
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     /// <summary>
@@ -43,12 +45,14 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var response = await _authService.LoginUserAsync(request);
-
-        if (response == null)
+        try
         {
-            return Unauthorized("Invalid username or password.");
+            var response = await _authService.LoginUserAsync(request);
+            return Ok(response);
         }
-        return Ok(response);
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
     }
 }

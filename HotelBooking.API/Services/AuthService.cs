@@ -20,18 +20,18 @@ public class AuthService : IAuthService
         _tokenService = tokenService;
     }
 
-    public async Task<AuthResponse?> RegisterUserAsync(RegisterRequest request)
+    public async Task<AuthResponse> RegisterUserAsync(RegisterRequest request)
     {
         var existingUser = await _userRepository.GetByUsernameAsync(request.Username);
         if (existingUser != null)
         {
-            return null;
+            throw new ArgumentException("Username already exists.");
         }
 
         var existingEmail = await _userRepository.GetByEmailAsync(request.Email);
         if (existingEmail != null)
         {
-            return null;
+            throw new ArgumentException("Email already exists.");
         }
 
         var user = new User // refactor later
@@ -50,12 +50,12 @@ public class AuthService : IAuthService
         return BuildAuthResponse(user);
     }
 
-    public async Task<AuthResponse?> LoginUserAsync(LoginRequest request)
+    public async Task<AuthResponse> LoginUserAsync(LoginRequest request)
     {
         var user = await _userRepository.GetByUsernameAsync(request.Username);
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            return null;
+            throw new UnauthorizedAccessException("Invalid username or password.");
         }
         return BuildAuthResponse(user);
     }
