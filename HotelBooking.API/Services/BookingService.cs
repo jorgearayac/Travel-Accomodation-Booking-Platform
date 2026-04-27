@@ -37,6 +37,12 @@ public class BookingService : IBookingService
 
     public async Task<BookingResponse> CreateBookingAsync(int userId, CreateBookingRequest request)
     {
+        // validate check-in in the future
+        if (request.CheckInDate.Date < DateTime.UtcNow.Date)
+        {
+            throw new ArgumentException("Check-in date cannot be in the past.");
+        }
+
         // validate dates
         var nights = (request.CheckOutDate - request.CheckInDate).Days;
         if (nights <= 0)
