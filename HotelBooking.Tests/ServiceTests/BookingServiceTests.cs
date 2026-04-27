@@ -42,8 +42,8 @@ public class BookingServiceTests
                     Id = 1,
                     UserId = 1,
                     ConfirmationNumber = "TEST1234",
-                    CheckInDate = new DateTime(2025, 8, 1, 0, 0, 0, DateTimeKind.Utc),
-                    CheckOutDate = new DateTime(2025, 8, 4, 0, 0, 0, DateTimeKind.Utc),
+                    CheckInDate = DateTime.UtcNow.Date.AddDays(10),
+                    CheckOutDate = DateTime.UtcNow.Date.AddDays(13),
                     NumberOfAdults = 2,
                     NumberOfChildren = 0,
                     PaymentMethod = PaymentMethod.CreditCard,
@@ -77,13 +77,32 @@ public class BookingServiceTests
     }
 
     [Fact]
+    public async Task CreateBookingAsync_WithCheckInInThePast_ThrowsArgumentException()
+    {
+        // Arrange
+        var request = new CreateBookingRequest
+        {
+            CheckInDate = new DateTime(2025, 7, 1, 0, 0, 0, DateTimeKind.Utc),
+            CheckOutDate = new DateTime(2025, 7, 5, 0, 0, 0, DateTimeKind.Utc),
+            NumberOfAdults = 2,
+            NumberOfChildren = 0,
+            PaymentMethod = PaymentMethod.CreditCard,
+            RoomIds = new List<int> { 1 }
+        };
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _bookingService.CreateBookingAsync(1, request));
+    }
+
+    [Fact]
     public async Task CreateBookingAsync_WithCheckOutBeforeCheckIn_ThrowsArgumentException()
     {
         // Arrange
         var request = new CreateBookingRequest
         {
-            CheckInDate = new DateTime(2025, 8, 4, 0, 0, 0, DateTimeKind.Utc),
-            CheckOutDate = new DateTime(2025, 8, 1, 0, 0, 0, DateTimeKind.Utc), // fixed dates
+            CheckInDate = new DateTime(2026, 8, 4, 0, 0, 0, DateTimeKind.Utc),
+            CheckOutDate = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc), // fixed dates
             NumberOfAdults = 2,
             NumberOfChildren = 0,
             PaymentMethod = PaymentMethod.CreditCard,
@@ -148,8 +167,8 @@ public class BookingServiceTests
                 Id = 1,
                 UserId = 1,
                 ConfirmationNumber = "TEST1234", // 8 length confirmation number
-                CheckInDate = new DateTime(2025, 8, 1, 0, 0, 0, DateTimeKind.Utc),
-                CheckOutDate = new DateTime(2025, 8, 4, 0, 0, 0, DateTimeKind.Utc),
+                CheckInDate = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc),
+                CheckOutDate = new DateTime(2026, 8, 4, 0, 0, 0, DateTimeKind.Utc),
                 NumberOfAdults = 2,
                 NumberOfChildren = 0,
                 PaymentMethod = PaymentMethod.CreditCard,
@@ -225,8 +244,8 @@ public class BookingServiceTests
     {
         return new CreateBookingRequest
         {
-            CheckInDate = new DateTime(2025, 8, 1, 0, 0, 0, DateTimeKind.Utc),
-            CheckOutDate = new DateTime(2025, 8, 4, 0, 0, 0, DateTimeKind.Utc),
+            CheckInDate = DateTime.UtcNow.Date.AddDays(10),
+            CheckOutDate = DateTime.UtcNow.Date.AddDays(13),
             NumberOfAdults = 2,
             NumberOfChildren = 0,
             PaymentMethod = PaymentMethod.CreditCard,
