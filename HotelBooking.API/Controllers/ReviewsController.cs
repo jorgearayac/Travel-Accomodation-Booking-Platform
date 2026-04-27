@@ -28,34 +28,16 @@ public class ReviewsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateReview([FromBody] CreateReviewRequest request)
     {
-        try
-        {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var review = await _reviewService.CreateReviewAsync(userId, request);
-            return CreatedAtAction(nameof(GetReviewsByHotelId), new { hotelId = review.HotelId }, review);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message); // User has already reviewed this hotel: 409 Conflict
-        }
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var review = await _reviewService.CreateReviewAsync(userId, request);
+        return CreatedAtAction(nameof(GetReviewsByHotelId), new { hotelId = review.HotelId }, review);
     }
 
     [HttpDelete("{Id}")]
     public async Task<IActionResult> DeleteReview(int id)
     {
-        try
-        {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            await _reviewService.DeleteReviewAsync(userId, id);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(403, ex.Message); // User is not the owner of the review: 403 Forbidden
-        }
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        await _reviewService.DeleteReviewAsync(userId, id);
+        return NoContent();
     }
 }

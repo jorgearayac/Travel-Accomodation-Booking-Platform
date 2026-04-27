@@ -40,15 +40,8 @@ public class HotelsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetHotelById(int id)
     {
-        try
-        {
-            var hotel = await _hotelService.GetHotelByIdAsync(id);
-            return Ok(hotel);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var hotel = await _hotelService.GetHotelByIdAsync(id);
+        return Ok(hotel);
     }
 
     /// <summary>
@@ -74,15 +67,8 @@ public class HotelsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateHotel(int id, [FromBody] HotelRequest request)
     {
-        try
-        {
-            var hotel = await _hotelService.UpdateHotelAsync(id, request);
-            return Ok(hotel);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var hotel = await _hotelService.UpdateHotelAsync(id, request);
+        return Ok(hotel);
     }
 
     /// <summary>
@@ -94,15 +80,8 @@ public class HotelsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteHotel(int id)
     {
-        try
-        {
-            await _hotelService.DeleteHotelAsync(id);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _hotelService.DeleteHotelAsync(id);
+        return NoContent();
     }
 
     // Search endpoint for hotels based on various criteria
@@ -117,15 +96,8 @@ public class HotelsController : ControllerBase
     [HttpGet("{id}/details")]
     public async Task<IActionResult> GetHotelDetails(int id)
     {
-        try
-        {
-            var hotel = await _hotelService.GetHotelDetailsAsync(id);
-            return Ok(hotel);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var hotel = await _hotelService.GetHotelDetailsAsync(id);
+        return Ok(hotel);
     }
 
     // Endpoint to get all images for a specific hotel
@@ -151,15 +123,8 @@ public class HotelsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateHotelImage(int imageId, [FromBody] HotelImageRequest request)
     {
-        try
-        {
-            var image = await _hotelImageService.UpdateImageAsync(imageId, request);
-            return Ok(image);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var image = await _hotelImageService.UpdateImageAsync(imageId, request);
+        return Ok(image);
     }
 
     // Endpoint to delete a hotel image. Only users with the "Admin" role can perform this action.
@@ -167,14 +132,7 @@ public class HotelsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteHotelImage(int imageId)
     {
-        try
-        {
-            await _hotelImageService.DeleteImageAsync(imageId);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _hotelImageService.DeleteImageAsync(imageId);
+        return NoContent();
     }
 }

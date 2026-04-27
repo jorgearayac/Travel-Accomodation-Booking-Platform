@@ -37,16 +37,8 @@ public class CitiesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCityById(int id)
     {
-        try
-        {
-            var city = await _cityService.GetCityByIdAsync(id);
-            return Ok(city);
-
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var city = await _cityService.GetCityByIdAsync(id);
+        return Ok(city);
     }
 
     /// <summary>
@@ -72,15 +64,8 @@ public class CitiesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateCity(int id, [FromBody] CityRequest request)
     {
-        try
-        {
-            var city = await _cityService.UpdateCityAsync(id, request);
-            return Ok(city);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var city = await _cityService.UpdateCityAsync(id, request);
+        return Ok(city);
     }
 
     /// <summary>
@@ -92,14 +77,7 @@ public class CitiesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteCity(int id)
     {
-        try
-        {
-            await _cityService.DeleteCityAsync(id);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _cityService.DeleteCityAsync(id);
+        return NoContent();
     }
 }

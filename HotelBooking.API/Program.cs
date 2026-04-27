@@ -1,9 +1,11 @@
 using HotelBooking.API.Interfaces;
+using HotelBooking.API.Middleware;
 using HotelBooking.API.Services;
 using HotelBooking.Db.Data;
 using HotelBooking.Db.Interfaces;
 using HotelBooking.Db.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -68,11 +70,43 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = context =>
+        {
+            context.HandleResponse();
+            context.Response.StatusCode = 401;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsJsonAsync(new ProblemDetails
+            {
+                Status = 401,
+                Title = "Unauthorized",
+                Instance = context.Request.Path
+            });
+        },
+        OnForbidden = context =>
+        {
+            context.Response.StatusCode = 403;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsJsonAsync(new ProblemDetails
+            {
+                Status = 403,
+                Title = "Forbidden - Insufficient permissions",
+                Instance = context.Request.Path
+            });
+        }
+    };
 });
 builder.Services.AddAuthorization();
 
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
 // Application configuration
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

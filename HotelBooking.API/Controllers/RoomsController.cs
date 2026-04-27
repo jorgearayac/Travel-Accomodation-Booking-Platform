@@ -28,15 +28,8 @@ public class RoomsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetRoomById(int id)
     {
-        try
-        {
-            var room = await _roomService.GetRoomByIdAsync(id);
-            return Ok(room);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var room = await _roomService.GetRoomByIdAsync(id);
+        return Ok(room);
     }
 
     [HttpPost]
@@ -51,29 +44,15 @@ public class RoomsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateRoom(int id, [FromBody] RoomRequest request)
     {
-        try
-        {
-            var room = await _roomService.UpdateRoomAsync(id, request);
-            return Ok(room);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var room = await _roomService.UpdateRoomAsync(id, request);
+        return Ok(room);
     }
 
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteRoom(int id)
     {
-        try
-        {
-            await _roomService.DeleteRoomAsync(id);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _roomService.DeleteRoomAsync(id);
+        return NoContent();
     }
 }

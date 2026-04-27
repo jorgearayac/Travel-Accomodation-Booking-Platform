@@ -21,15 +21,8 @@ public class BookingController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetBookingById(int id)
     {
-        try
-        {
-            var booking = await _bookingService.GetBookingByIdAsync(id);
-            return Ok(booking);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var booking = await _bookingService.GetBookingByIdAsync(id);
+        return Ok(booking);
     }
 
     [HttpGet("user")]
@@ -43,23 +36,8 @@ public class BookingController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
     {
-        try
-        {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var booking = await _bookingService.CreateBookingAsync(userId, request);
-            return CreatedAtAction(nameof(GetBookingById), new { id = booking.Id }, booking);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var booking = await _bookingService.CreateBookingAsync(userId, request);
+        return CreatedAtAction(nameof(GetBookingById), new { id = booking.Id }, booking);
     }
 }

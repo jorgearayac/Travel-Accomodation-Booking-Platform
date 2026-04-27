@@ -28,15 +28,8 @@ public class FeaturedDealsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetFeaturedDealById(int id)
     {
-        try
-        {
-            var deal = await _featuredDealService.GetFeaturedDealByIdAsync(id);
-            return Ok(deal);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var deal = await _featuredDealService.GetFeaturedDealByIdAsync(id);
+        return Ok(deal);
     }
 
     [HttpPost]
@@ -51,29 +44,15 @@ public class FeaturedDealsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateFeaturedDeal(int id, [FromBody] FeaturedDealRequest request)
     {
-        try
-        {
-            var deal = await _featuredDealService.UpdateFeaturedDealAsync(id, request);
-            return Ok(deal);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var deal = await _featuredDealService.UpdateFeaturedDealAsync(id, request);
+        return Ok(deal);
     }
 
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteFeaturedDeal(int id)
     {
-        try
-        {
-            await _featuredDealService.DeleteFeaturedDealAsync(id);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _featuredDealService.DeleteFeaturedDealAsync(id);
+        return NoContent();
     }
 }

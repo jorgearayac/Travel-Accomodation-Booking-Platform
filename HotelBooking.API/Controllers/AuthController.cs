@@ -25,15 +25,8 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        try
-        {
-            var response = await _authService.RegisterUserAsync(request);
-            return Ok(response);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var response = await _authService.RegisterUserAsync(request);
+        return Ok(response);
     }
 
     /// <summary>
@@ -45,14 +38,7 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        try
-        {
-            var response = await _authService.LoginUserAsync(request);
-            return Ok(response);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
+        var response = await _authService.LoginUserAsync(request);
+        return Ok(response);
     }
 }
