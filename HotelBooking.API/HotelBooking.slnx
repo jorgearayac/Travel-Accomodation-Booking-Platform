@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="../HotelBooking.Db/HotelBooking.Db.csproj" Id="1471e275-7fa3-4b9b-9190-684db0d0c33e" />
+  <Project Path="../HotelBooking.Tests/HotelBooking.Tests.csproj" />
+  <Project Path="HotelBooking.API.csproj" />
+</Solution>
