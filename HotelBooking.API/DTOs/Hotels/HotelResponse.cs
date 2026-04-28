@@ -1,10 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace HotelBooking.API.DTOs.Hotels;
 
-namespace HotelBooking.API.DTOs.Hotels;
-
-/// <summary>
-/// Format for the responses containing hotel details in the system.
-/// </summary>
 public class HotelResponse
 {
     public int Id { get; set; }

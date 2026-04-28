@@ -2,7 +2,6 @@
 using HotelBooking.API.DTOs.Pagination;
 using HotelBooking.API.DTOs.Search;
 using HotelBooking.API.Interfaces;
-using HotelBooking.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -84,7 +83,11 @@ public class HotelsController : ControllerBase
         return NoContent();
     }
 
-    // Search endpoint for hotels based on various criteria
+    /// <summary>
+    /// Searchs a hotel with various filter criteria.
+    /// </summary>
+    /// <param name="request">The search request with its filters.</param>
+    /// <returns>An <see cref="OkObjectResult"/> with the filtered search. Or an empty list if the filters does not match any hotel.</returns>
     [HttpGet("search")]
     public async Task<IActionResult> SearchHotels([FromQuery] HotelSearchRequest request)
     {
@@ -92,7 +95,11 @@ public class HotelsController : ControllerBase
         return Ok(results);
     }
 
-    // Endpoint to get hotel details including images and rooms
+    /// <summary>
+    /// Retrieves detailed information for the specified hotel.
+    /// </summary>
+    /// <param name="id">The Id of the hotel to retrieve details for.</param>
+    /// <returns>An <see cref="OkObjectResult"/> containing the hotel details if found; otherwise, a not found result.</returns>
     [HttpGet("{id}/details")]
     public async Task<IActionResult> GetHotelDetails(int id)
     {
@@ -100,7 +107,11 @@ public class HotelsController : ControllerBase
         return Ok(hotel);
     }
 
-    // Endpoint to get all images for a specific hotel
+    /// <summary>
+    /// Retrieves all images of a specific hotel by its Id.
+    /// </summary>
+    /// <param name="id">The Id of the hotel to retrieves images for.</param>
+    /// <returns>An <see cref="OkObjectResult"/> containing the hotel images if found; otherwise, an empty list.</returns>
     [HttpGet("{id}/images")]
     public async Task<IActionResult> GetHotelImages(int id)
     {
@@ -108,7 +119,12 @@ public class HotelsController : ControllerBase
         return Ok(images);
     }
 
-    // Endpoint to create a new image for a specific hotel. Only users with the "Admin" role can perform this action.
+    /// <summary>
+    /// Creates an image for a specific hotel by its Id from the route. Only users with role "Admin" can do this action.
+    /// </summary>
+    /// <param name="id">The Id of the hotel to create an image. </param>
+    /// <param name="request">The image request with its details.</param>
+    /// <returns>A <see cref="CreatedAtActionResult"/> with the details of the image.</returns>
     [HttpPost("{id}/images")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateHotelImage(int id, [FromBody] HotelImageRequest request)
@@ -118,7 +134,12 @@ public class HotelsController : ControllerBase
         return CreatedAtAction(nameof(GetHotelImages), new { id }, image);
     }
 
-    // Endpoint to update an existing hotel image. Only users with the "Admin" role can perform this action.
+    /// <summary>
+    /// Updates an image by its Id. Only users with role "Admin" can do this action.
+    /// </summary>
+    /// <param name="imageId">The Id of the image to update.</param>
+    /// <param name="request">The updated image with its details.</param>
+    /// <returns>An <see cref="OkObjectResult"/> with the details of the updated image.</returns>
     [HttpPut("images/{imageId}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateHotelImage(int imageId, [FromBody] HotelImageRequest request)
@@ -127,7 +148,11 @@ public class HotelsController : ControllerBase
         return Ok(image);
     }
 
-    // Endpoint to delete a hotel image. Only users with the "Admin" role can perform this action.
+    /// <summary>
+    /// Deletes an image by its Id. Only users with role "Admin" can do this action.
+    /// </summary>
+    /// <param name="imageId">The Id of the image to delete.</param>
+    /// <returns>A <see cref="NoContentResult"/>.</returns>
     [HttpDelete("images/{imageId}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteHotelImage(int imageId)

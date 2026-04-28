@@ -1,9 +1,9 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using HotelBooking.API.Interfaces;
+using HotelBooking.Db.Models;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using HotelBooking.API.Interfaces;  
-using HotelBooking.Db.Models;
 
 namespace HotelBooking.API.Services;
 

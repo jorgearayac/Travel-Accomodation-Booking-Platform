@@ -2,8 +2,6 @@
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Interfaces;
 using HotelBooking.Db.Models;
-using System.Runtime.ConstrainedExecution;
-using System.Security.Claims;
 
 namespace HotelBooking.API.Services;
 
@@ -55,7 +53,7 @@ public class ReviewService : IReviewService
         {
             throw new KeyNotFoundException($"Review with id {reviewId} not found.");
         }
-        
+
         if (review.UserId != userId)
         {
             throw new UnauthorizedAccessException("You can only delete your own reviews.");

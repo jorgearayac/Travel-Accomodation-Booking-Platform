@@ -74,7 +74,7 @@ public class CityService : ICityService
         await _cityRepository.UpdateAsync(city);
         return MapToResponse(city);
     }
-    
+
     public async Task DeleteCityAsync(int id)
     {
         var city = await _cityRepository.GetByIdAsync(id);

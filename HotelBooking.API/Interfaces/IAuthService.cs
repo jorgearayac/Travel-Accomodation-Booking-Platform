@@ -13,7 +13,7 @@ public interface IAuthService
     /// <param name="request">The registration request.</param>
     /// <returns>AuthResponse with token, or null if registration fails.</returns>
     Task<AuthResponse> RegisterUserAsync(RegisterRequest request);
-    
+
     /// <summary>
     /// Authenticates a user and returns a token.
     /// </summary>

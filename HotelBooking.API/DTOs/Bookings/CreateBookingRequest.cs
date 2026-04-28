@@ -7,7 +7,7 @@ public class CreateBookingRequest
 {
     public DateTime CheckInDate { get; set; }
     public DateTime CheckOutDate { get; set; }
-    
+
     [Range(1, 10)]
     public int NumberOfAdults { get; set; }
 

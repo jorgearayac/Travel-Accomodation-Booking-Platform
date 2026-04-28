@@ -22,7 +22,7 @@ public interface ICityService
     /// <returns>A <see cref="CityResponse"/> object representing the city.</returns>
     /// <exception cref="KeyNotFoundException">Thrown when no city with the specified Id is found.</exception>
     Task<CityResponse> GetCityByIdAsync(int id);
-    
+
     /// <summary>
     /// Creates a new city in the system.
     /// </summary>

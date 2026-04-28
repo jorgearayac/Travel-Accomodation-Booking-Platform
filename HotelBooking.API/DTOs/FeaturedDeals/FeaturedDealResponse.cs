@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace HotelBooking.API.DTOs.FeaturedDeals;
+﻿namespace HotelBooking.API.DTOs.FeaturedDeals;
 
 public class FeaturedDealResponse
 {

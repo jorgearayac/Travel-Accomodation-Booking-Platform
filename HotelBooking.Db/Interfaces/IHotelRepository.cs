@@ -20,10 +20,27 @@ public interface IHotelRepository : IRepository<Hotel>
     /// <returns>The hotel with its rooms, or null if not found.</returns>
     Task<Hotel?> GetByIdWithRoomsAsync(int id);
 
-    // Pagination method to retrieve hotels with their rooms
+    /// <summary>
+    /// Paginates a hotel with details of its rooms.
+    /// </summary>
+    /// <param name="pageNumber">The number of the page.</param>
+    /// <param name="pageSize">The size of the page.</param>
+    /// <returns>A collection of Hotels with details of its rooms, and pagination information.</returns>
     Task<(IEnumerable<Hotel> Items, int TotalCount)> GetPaginatedWithRoomsAsync(int pageNumber, int pageSize);
 
-    // Search method to retrieve hotels based on search criteria with pagination
+    /// <summary>
+    /// Searchs a hotel based on various criteria.
+    /// </summary>
+    /// <param name="query"></param>
+    /// <param name="minPrice">Minimum price to search for.</param>
+    /// <param name="maxPrice">Maximum price to search for.</param>
+    /// <param name="starRate">Star rating (1-5) to search for.</param>
+    /// <param name="roomType">Room type (budget-luxury-boutique) to search for.</param>
+    /// <param name="adults">Number of adults (default = 2).</param>
+    /// <param name="children">Number of children (default = 0).</param>
+    /// <param name="pageNumber">The number of the page.</param>
+    /// <param name="pageSize">The size of the page.</param>
+    /// <returns>A collection of Hotels.</returns>
     Task<(IEnumerable<Hotel> Items, int TotalCount)> SearchAsync(
         string? query,
         decimal? minPrice,
@@ -35,6 +52,10 @@ public interface IHotelRepository : IRepository<Hotel>
         int pageNumber,
         int pageSize);
 
-    // Method to get Hotels with full details
+    /// <summary>
+    /// Retrieves a hotel with full details by its Id.
+    /// </summary>
+    /// <param name="id">The Id of the hotel to search for.</param>
+    /// <returns>The Hotel with full details, null if not found.</returns>
     Task<Hotel?> GetByIdWithFullDetailsAsync(int id);
 }

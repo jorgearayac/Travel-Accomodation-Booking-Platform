@@ -18,6 +18,11 @@ public class BookingController : ControllerBase
         _bookingService = bookingService;
     }
 
+    /// <summary>
+    /// Searchs and returns a booking by its Id.
+    /// </summary>
+    /// <param name="id">The Id to search for.</param>
+    /// <returns>An <see cref="OkObjectResult"/> with the searched booking.</returns>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetBookingById(int id)
     {
@@ -25,6 +30,10 @@ public class BookingController : ControllerBase
         return Ok(booking);
     }
 
+    /// <summary>
+    /// Searchs and returns a booking by its current user.
+    /// </summary>
+    /// <returns>An <see cref="OkObjectResult"/> with the searched booking.</returns>
     [HttpGet("user")]
     public async Task<IActionResult> GetBookingByUser()
     {
@@ -33,6 +42,11 @@ public class BookingController : ControllerBase
         return Ok(bookings);
     }
 
+    /// <summary>
+    /// Creates a new booking using the specified booking request data.
+    /// </summary>
+    /// <param name="request">The booking details to create. Must not be null.</param>
+    /// <returns>A <see cref="CreatedAtActionResult"> response containing the newly created booking resource.</returns>
     [HttpPost]
     public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
     {

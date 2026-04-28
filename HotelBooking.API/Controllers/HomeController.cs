@@ -1,5 +1,4 @@
 ﻿using HotelBooking.API.Interfaces;
-using HotelBooking.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -22,6 +21,10 @@ public class HomeController : ControllerBase
         _cityService = cityService;
     }
 
+    /// <summary>
+    /// Retrieves a list of featured deals.
+    /// </summary>
+    /// <returns>An <see cref="OkObjectResult"/> containing a collection of featured deals for booking.</returns>
     [HttpGet("featured-deals")]
     public async Task<IActionResult> GetFeaturedDeals()
     {
@@ -29,6 +32,10 @@ public class HomeController : ControllerBase
         return Ok(deals);
     }
 
+    /// <summary>
+    /// Retrieves a list of hotels that the current user has recently booked.
+    /// </summary>
+    /// <returns>An <see cref="OkObjectResult"/> containing a collection of recently booked hotels. Otherwise, an empty list.</returns>
     [HttpGet("recently-booked")]
     public async Task<IActionResult> GetRecentlyBooked()
     {
@@ -37,6 +44,10 @@ public class HomeController : ControllerBase
         return Ok(recentHotels);
     }
 
+    /// <summary>
+    /// Retrieves a list of trending travel destinations.
+    /// </summary>\
+    /// <returns>An <see cref="OkObjectResult"/> containing a collection of trending destinations. Otherwise, an empty list.</returns>
     [HttpGet("trending-destinations")]
     public async Task<IActionResult> GetTrendingDestinations()
     {

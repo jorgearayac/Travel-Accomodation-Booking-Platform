@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using HotelBooking.API.DTOs.Auth;
 using HotelBooking.API.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBooking.API.Controllers;
 
@@ -20,7 +20,8 @@ public class AuthController : ControllerBase
     /// Registers a new user and returns an authentication token.
     /// </summary>
     /// <param name="request">The registration details.</param>
-    /// <returns>An <see cref="OkObjectResult"/> with an AuthResponse containing a JWT token, or a <see cref="BadRequestObjectResult"/> if username/email is taken.</returns>
+    /// <returns>An <see cref="OkObjectResult"/> with an AuthResponse containing a JWT token,
+    /// or a <see cref="BadRequestObjectResult"/> if username/email is taken.</returns>
     [HttpPost("register")]
     [AllowAnonymous]
     public async Task<IActionResult> Register(RegisterRequest request)
@@ -33,7 +34,8 @@ public class AuthController : ControllerBase
     /// Authenticates a user and returns an authentication token.
     /// </summary>
     /// <param name="request">The login credentials.</param>
-    /// <returns>An <see cref="OkObjectResult"/> with an AuthResponse containing a JWT token, or a <see cref="UnauthorizedResult"/> if credentials are invalid.</returns>
+    /// <returns>An <see cref="OkObjectResult"/> with an AuthResponse containing a JWT token,
+    /// or a <see cref="UnauthorizedResult"/> if credentials are invalid.</returns>
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<IActionResult> Login(LoginRequest request)

@@ -1,6 +1,4 @@
 ﻿using HotelBooking.API.DTOs.Hotels;
-using HotelBooking.API.DTOs.Pagination;
-using HotelBooking.API.DTOs.Rooms;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Interfaces;
 using HotelBooking.Db.Models;

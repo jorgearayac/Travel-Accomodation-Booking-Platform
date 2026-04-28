@@ -2,6 +2,9 @@
 
 namespace HotelBooking.API.Interfaces;
 
+/// <summary>
+/// Interface for review-related operations in the system.
+/// </summary>
 public interface IReviewService
 {
     /// <summary>
@@ -17,7 +20,7 @@ public interface IReviewService
     /// <param name="userId"></param>
     /// <param name="request"></param>
     /// <returns></returns>
-    Task<ReviewResponse> CreateReviewAsync(int userId,CreateReviewRequest request);
+    Task<ReviewResponse> CreateReviewAsync(int userId, CreateReviewRequest request);
 
     /// <summary>
     /// Deletes a review by its Id. Only the user who created the review can delete it.

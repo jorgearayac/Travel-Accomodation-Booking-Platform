@@ -1,12 +1,8 @@
-﻿using HotelBooking.API.DTOs.Cities;
-using HotelBooking.API.DTOs.Hotels;
-using HotelBooking.API.DTOs.Pagination;
+﻿using HotelBooking.API.DTOs.Pagination;
 using HotelBooking.API.DTOs.Rooms;
 using HotelBooking.API.Interfaces;
-using HotelBooking.Db.Enums;
 using HotelBooking.Db.Interfaces;
 using HotelBooking.Db.Models;
-using HotelBooking.Db.Repositories;
 
 namespace HotelBooking.API.Services;
 
@@ -65,7 +61,7 @@ public class RoomService : IRoomService
         await _roomRepository.AddAsync(room);
         return MapToResponse(room);
     }
-    
+
     public async Task<RoomResponse> UpdateRoomAsync(int id, RoomRequest request)
     {
         var room = await _roomRepository.GetByIdAsync(id);

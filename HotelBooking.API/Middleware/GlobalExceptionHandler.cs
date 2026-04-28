@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBooking.API.Middleware;
 
+/// <summary>
+/// Class with global exception logic.
+/// </summary>
 public class GlobalExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<GlobalExceptionHandler> _logger;

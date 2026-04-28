@@ -1,5 +1,4 @@
 ﻿using HotelBooking.Db.Enums;
-using System.ComponentModel.DataAnnotations;
 
 namespace HotelBooking.API.DTOs.Rooms;
 

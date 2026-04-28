@@ -1,5 +1,8 @@
 ﻿namespace HotelBooking.API.Exceptions;
 
+/// <summary>
+/// Abstract class to handle global exceptions.
+/// </summary>
 public abstract class AppException : Exception
 {
     public int StatusCode { get; set; }

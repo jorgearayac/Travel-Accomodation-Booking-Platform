@@ -1,10 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace HotelBooking.API.DTOs.Hotels;
 
-namespace HotelBooking.API.DTOs.Hotels;
-
-/// <summary>
-/// Format for the requests to create or update a hotel in the system.
-/// </summary>
 public class HotelRequest
 {
     public int CityId { get; set; }
