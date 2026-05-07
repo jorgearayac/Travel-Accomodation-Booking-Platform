@@ -1,4 +1,4 @@
-﻿using HotelBooking.API.DTOs.Bookings;
+using HotelBooking.API.DTOs.Bookings;
 using HotelBooking.API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,14 +19,15 @@ public class BookingController : ControllerBase
     }
 
     /// <summary>
-    /// Searchs and returns a booking by its Id.
+    /// Searchs and returns a booking by its Id. Only the owner can view their booking.
     /// </summary>
     /// <param name="id">The Id to search for.</param>
     /// <returns>An <see cref="OkObjectResult"/> with the searched booking.</returns>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetBookingById(int id)
     {
-        var booking = await _bookingService.GetBookingByIdAsync(id);
+        var userId = GetCurrentUserId();
+        var booking = await _bookingService.GetBookingByIdAsync(id, userId);
         return Ok(booking);
     }
 
@@ -37,7 +38,7 @@ public class BookingController : ControllerBase
     [HttpGet("user")]
     public async Task<IActionResult> GetBookingByUser()
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var userId = GetCurrentUserId();
         var bookings = await _bookingService.GetBookingsByUserAsync(userId);
         return Ok(bookings);
     }
@@ -50,8 +51,15 @@ public class BookingController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var userId = GetCurrentUserId();
         var booking = await _bookingService.CreateBookingAsync(userId, request);
         return CreatedAtAction(nameof(GetBookingById), new { id = booking.Id }, booking);
+    }
+
+    private int GetCurrentUserId()
+    {
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier)
+            ?? throw new UnauthorizedAccessException("User identity not found.");
+        return int.Parse(claim.Value);
     }
 }

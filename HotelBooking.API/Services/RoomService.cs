@@ -1,4 +1,4 @@
-﻿using HotelBooking.API.DTOs.Pagination;
+using HotelBooking.API.DTOs.Pagination;
 using HotelBooking.API.DTOs.Rooms;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Interfaces;
@@ -9,16 +9,23 @@ namespace HotelBooking.API.Services;
 public class RoomService : IRoomService
 {
     private readonly IRoomRepository _roomRepository;
+    private readonly IHotelRepository _hotelRepository;
+    private readonly ILogger<RoomService> _logger;
 
-    public RoomService(IRoomRepository roomRepository)
+    public RoomService(
+        IRoomRepository roomRepository,
+        IHotelRepository hotelRepository,
+        ILogger<RoomService> logger)
     {
         _roomRepository = roomRepository;
+        _hotelRepository = hotelRepository;
+        _logger = logger;
     }
 
     public async Task<PaginationResponse<RoomResponse>> GetAllRoomsAsync(PaginationRequest pagination)
     {
         var (rooms, totalCount) = await _roomRepository.GetPaginatedAsync(pagination.PageNumber, pagination.PageSize);
-        var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize); // Math.Ceiling to round up to the nearest whole number
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize);
 
         return new PaginationResponse<RoomResponse>
         {
@@ -44,6 +51,12 @@ public class RoomService : IRoomService
 
     public async Task<RoomResponse> CreateRoomAsync(RoomRequest request)
     {
+        var hotel = await _hotelRepository.GetByIdAsync(request.HotelId);
+        if (hotel == null)
+        {
+            throw new KeyNotFoundException($"Hotel with Id {request.HotelId} not found.");
+        }
+
         var room = new Room
         {
             HotelId = request.HotelId,
@@ -59,6 +72,7 @@ public class RoomService : IRoomService
             UpdatedDate = DateTime.UtcNow
         };
         await _roomRepository.AddAsync(room);
+        _logger.LogInformation("Room {RoomNumber} created for hotel {HotelId}", request.RoomNumber, request.HotelId);
         return MapToResponse(room);
     }
 
@@ -92,9 +106,9 @@ public class RoomService : IRoomService
             throw new KeyNotFoundException($"Room with Id {id} not found.");
         }
         await _roomRepository.DeleteAsync(room);
+        _logger.LogInformation("Room {RoomId} deleted", id);
     }
 
-    // Helper method to map Room entity to RoomResponse DTO
     private RoomResponse MapToResponse(Room room)
     {
         return new RoomResponse

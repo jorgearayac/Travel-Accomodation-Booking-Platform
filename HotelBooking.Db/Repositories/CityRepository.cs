@@ -14,13 +14,17 @@ public class CityRepository : Repository<City>, ICityRepository
 
     public async Task<IEnumerable<City>> GetAllWithHotelsAsync()
     {
-        return await _dbSet.Include(c => c.Hotels)
+        return await _dbSet
+            .AsNoTracking()
+            .Include(c => c.Hotels)
             .ToListAsync();
     }
 
     public async Task<City?> GetByIdWithHotelsAsync(int id)
     {
-        return await _dbSet.Include(c => c.Hotels)
+        return await _dbSet
+            .AsNoTracking()
+            .Include(c => c.Hotels)
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 
@@ -28,6 +32,7 @@ public class CityRepository : Repository<City>, ICityRepository
     {
         var totalCount = await _dbSet.CountAsync();
         var items = await _dbSet
+            .AsNoTracking()
             .Include(c => c.Hotels)
             .OrderBy(c => c.Id)
             .Skip((pageNumber - 1) * pageSize)
@@ -36,17 +41,22 @@ public class CityRepository : Repository<City>, ICityRepository
         return (items, totalCount);
     }
 
-    public async Task<IEnumerable<City>> GetTopBookedCitiesAsync(int count)
+    public async Task<IEnumerable<(City City, int BookingCount)>> GetTopBookedCitiesAsync(int count)
     {
         return await _dbSet
-            .Include(c => c.Hotels)
-            .ThenInclude(h => h.Rooms)
-            .ThenInclude(r => r.BookingRooms)
-            .OrderByDescending(c => c.Hotels
-            .SelectMany(h => h.Rooms)
-            .SelectMany(r => r.BookingRooms)
-            .Count())
+            .Select(c => new
+            {
+                City = c,
+                BookingCount = c.Hotels
+                    .SelectMany(h => h.Rooms)
+                    .SelectMany(r => r.BookingRooms)
+                    .Count()
+            })
+            .OrderByDescending(x => x.BookingCount)
             .Take(count)
-            .ToListAsync();
+            .AsNoTracking()
+            .Select(x => new { x.City, x.BookingCount })
+            .ToListAsync()
+            .ContinueWith(t => t.Result.Select(x => (x.City, x.BookingCount)));
     }
 }

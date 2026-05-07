@@ -1,9 +1,10 @@
-﻿using HotelBooking.API.DTOs.Auth;
+using HotelBooking.API.DTOs.Auth;
 using HotelBooking.API.Interfaces;
 using HotelBooking.API.Services;
 using HotelBooking.Db.Enums;
 using HotelBooking.Db.Interfaces;
 using HotelBooking.Db.Models;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace HotelBooking.Tests.ServiceTests;
@@ -18,13 +19,14 @@ public class AuthServiceTests
     {
         _mockUserRepo = new Mock<IUserRepository>();
         _mockTokenService = new Mock<ITokenService>();
-        _authService = new AuthService(_mockUserRepo.Object, _mockTokenService.Object);
+        var mockLogger = new Mock<ILogger<AuthService>>();
+        _authService = new AuthService(_mockUserRepo.Object, _mockTokenService.Object, mockLogger.Object);
     }
 
     [Fact]
     public async Task LoginUserAsync_WithValidCredentials_ReturnsAuthResponse()
     {
-        // Arrange 
+        // Arrange
         var user = CreateTestUser("jorge", "TestPassword");
 
         _mockUserRepo
@@ -170,7 +172,6 @@ public class AuthServiceTests
             .Verify(r => r.AddAsync(It.IsAny<User>()), Times.Never);
     }
 
-    // Helper method to create test user
     private static User CreateTestUser(string username, string password)
     {
         return new User

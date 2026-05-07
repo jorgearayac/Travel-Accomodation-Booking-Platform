@@ -21,6 +21,7 @@ public class FeaturedDealsController : ControllerBase
     /// </summary>
     /// <returns>An <see cref="OkObjectResult"> with the deals.</see></returns>
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllFeaturedDeals()
     {
         var deals = await _featuredDealService.GetAllFeaturedDealsAsync();
@@ -34,6 +35,7 @@ public class FeaturedDealsController : ControllerBase
     /// <returns>An <see cref="OkObjectResult"> containing the featured deal if found; 
     /// otherwise, a <see cref="NotFoundObjectResult"> result.</returns>
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetFeaturedDealById(int id)
     {
         var deal = await _featuredDealService.GetFeaturedDealByIdAsync(id);

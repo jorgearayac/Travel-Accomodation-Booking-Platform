@@ -1,4 +1,4 @@
-﻿using HotelBooking.API.Interfaces;
+using HotelBooking.API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -7,7 +7,6 @@ namespace HotelBooking.API.Controllers;
 
 [ApiController]
 [Route("api/home")]
-[Authorize]
 public class HomeController : ControllerBase
 {
     private readonly IFeaturedDealService _featuredDealService;
@@ -26,6 +25,7 @@ public class HomeController : ControllerBase
     /// </summary>
     /// <returns>An <see cref="OkObjectResult"/> containing a collection of featured deals for booking.</returns>
     [HttpGet("featured-deals")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetFeaturedDeals()
     {
         var deals = await _featuredDealService.GetAllFeaturedDealsAsync();
@@ -37,18 +37,22 @@ public class HomeController : ControllerBase
     /// </summary>
     /// <returns>An <see cref="OkObjectResult"/> containing a collection of recently booked hotels. Otherwise, an empty list.</returns>
     [HttpGet("recently-booked")]
+    [Authorize]
     public async Task<IActionResult> GetRecentlyBooked()
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier)
+            ?? throw new UnauthorizedAccessException("User identity not found.");
+        var userId = int.Parse(claim.Value);
         var recentHotels = await _bookingService.GetRecentlyBookedHotelsAsync(userId);
         return Ok(recentHotels);
     }
 
     /// <summary>
     /// Retrieves a list of trending travel destinations.
-    /// </summary>\
+    /// </summary>
     /// <returns>An <see cref="OkObjectResult"/> containing a collection of trending destinations. Otherwise, an empty list.</returns>
     [HttpGet("trending-destinations")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetTrendingDestinations()
     {
         var destinations = await _cityService.GetTrendingDestinationsAsync();

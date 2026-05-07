@@ -29,9 +29,9 @@ public interface ICityRepository : IRepository<City>
     Task<(IEnumerable<City> Items, int TotalCount)> GetPaginatedWithHotelsAsync(int pageNumber, int pageSize);
 
     /// <summary>
-    /// Retrieves the top booked cities by a count.
+    /// Retrieves the top booked cities by a count, with their booking counts.
     /// </summary>
     /// <param name="count">The number to set the top of cities.</param>
-    /// <returns>A collection of cities ranked by top bookings.</returns>
-    Task<IEnumerable<City>> GetTopBookedCitiesAsync(int count);
+    /// <returns>A collection of cities ranked by top bookings, with booking counts.</returns>
+    Task<IEnumerable<(City City, int BookingCount)>> GetTopBookedCitiesAsync(int count);
 }

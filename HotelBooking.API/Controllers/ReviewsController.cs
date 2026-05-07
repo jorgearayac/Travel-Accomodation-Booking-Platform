@@ -1,4 +1,4 @@
-﻿using HotelBooking.API.DTOs.Reviews;
+using HotelBooking.API.DTOs.Reviews;
 using HotelBooking.API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +24,7 @@ public class ReviewsController : ControllerBase
     /// <param name="hotelId">The Id of the hotel to look for.</param>
     /// <returns>An <see cref="OkObjectResult"> with the reviews of the hotel.</returns>
     [HttpGet("hotel/{hotelId}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetReviewsByHotelId(int hotelId)
     {
         var reviews = await _reviewService.GetReviewsByHotelIdAsync(hotelId);
@@ -38,21 +39,28 @@ public class ReviewsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateReview([FromBody] CreateReviewRequest request)
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var userId = GetCurrentUserId();
         var review = await _reviewService.CreateReviewAsync(userId, request);
         return CreatedAtAction(nameof(GetReviewsByHotelId), new { hotelId = review.HotelId }, review);
     }
 
     /// <summary>
-    /// Deletes a reviw by its Id. Only the user that made the review can delete it.
+    /// Deletes a review by its Id. Only the user that made the review can delete it.
     /// </summary>
     /// <param name="id">The Id of the review to delete.</param>
     /// <returns>A <see cref="NoContentResult">.</returns>
-    [HttpDelete("{Id}")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteReview(int id)
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var userId = GetCurrentUserId();
         await _reviewService.DeleteReviewAsync(userId, id);
         return NoContent();
+    }
+
+    private int GetCurrentUserId()
+    {
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier)
+            ?? throw new UnauthorizedAccessException("User identity not found.");
+        return int.Parse(claim.Value);
     }
 }

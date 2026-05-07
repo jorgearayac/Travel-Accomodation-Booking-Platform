@@ -1,4 +1,4 @@
-﻿using HotelBooking.API.DTOs.Cities;
+using HotelBooking.API.DTOs.Cities;
 using HotelBooking.API.DTOs.Home;
 using HotelBooking.API.DTOs.Pagination;
 using HotelBooking.API.Interfaces;
@@ -10,16 +10,18 @@ namespace HotelBooking.API.Services;
 public class CityService : ICityService
 {
     private readonly ICityRepository _cityRepository;
+    private readonly ILogger<CityService> _logger;
 
-    public CityService(ICityRepository cityRepository)
+    public CityService(ICityRepository cityRepository, ILogger<CityService> logger)
     {
         _cityRepository = cityRepository;
+        _logger = logger;
     }
 
     public async Task<PaginationResponse<CityResponse>> GetAllCitiesAsync(PaginationRequest pagination)
     {
         var (cities, totalCount) = await _cityRepository.GetPaginatedWithHotelsAsync(pagination.PageNumber, pagination.PageSize);
-        var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize); // Math.Ceiling to round up to the nearest whole number
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize);
 
         return new PaginationResponse<CityResponse>
         {
@@ -55,6 +57,7 @@ public class CityService : ICityService
             UpdatedDate = DateTime.UtcNow
         };
         await _cityRepository.AddAsync(city);
+        _logger.LogInformation("City {CityName} created", request.Name);
         return MapToResponse(city);
     }
 
@@ -83,25 +86,22 @@ public class CityService : ICityService
             throw new KeyNotFoundException($"City with Id {id} not found.");
         }
         await _cityRepository.DeleteAsync(city);
+        _logger.LogInformation("City {CityId} deleted", id);
     }
 
     public async Task<IEnumerable<TrendingDestinationResponse>> GetTrendingDestinationsAsync()
     {
-        var cities = await _cityRepository.GetTopBookedCitiesAsync(5);
-        return cities.Select(c => new TrendingDestinationResponse
+        var results = await _cityRepository.GetTopBookedCitiesAsync(5);
+        return results.Select(r => new TrendingDestinationResponse
         {
-            CityId = c.Id,
-            CityName = c.Name,
-            Country = c.Country,
-            ThumbnailUrl = c.ThumbnailUrl ?? "", // "" for already created cities without thumbnail
-            BookingCount = c.Hotels
-                .SelectMany(h => h.Rooms)
-                .SelectMany(r => r.BookingRooms)
-                .Count()
+            CityId = r.City.Id,
+            CityName = r.City.Name,
+            Country = r.City.Country,
+            ThumbnailUrl = r.City.ThumbnailUrl ?? "",
+            BookingCount = r.BookingCount
         });
     }
 
-    // Helper method, refactor later
     private CityResponse MapToResponse(City city)
     {
         return new CityResponse

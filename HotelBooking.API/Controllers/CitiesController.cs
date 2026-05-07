@@ -23,6 +23,7 @@ public class CitiesController : ControllerBase
     /// </summary>
     /// <returns>An <see cref="OkObjectResult"/> with a list of cities.</returns>
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllCities([FromQuery] PaginationRequest pagination)
     {
         var cities = await _cityService.GetAllCitiesAsync(pagination);
@@ -35,6 +36,7 @@ public class CitiesController : ControllerBase
     /// <param name="id">The Id of the city to search for.</param>
     /// <returns>An <see cref="OkObjectResult"/> with the details of the city, or a <see cref="NotFoundResult"/> if the city does not exist.</returns>
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetCityById(int id)
     {
         var city = await _cityService.GetCityByIdAsync(id);

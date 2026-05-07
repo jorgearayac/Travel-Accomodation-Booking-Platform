@@ -1,31 +1,39 @@
-﻿using HotelBooking.API.DTOs.Reviews;
+using HotelBooking.API.DTOs.Reviews;
 using HotelBooking.API.Services;
 using HotelBooking.Db.Enums;
 using HotelBooking.Db.Interfaces;
 using HotelBooking.Db.Models;
+using Microsoft.Extensions.Logging;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace HotelBooking.Tests.ServiceTests;
 
 public class ReviewServiceTests
 {
     private readonly Mock<IReviewRepository> _mockReviewRepo;
+    private readonly Mock<IHotelRepository> _mockHotelRepo;
     private readonly ReviewService _reviewService;
 
     public ReviewServiceTests()
     {
         _mockReviewRepo = new Mock<IReviewRepository>();
-        _reviewService = new ReviewService(_mockReviewRepo.Object);
+        _mockHotelRepo = new Mock<IHotelRepository>();
+        var mockLogger = new Mock<ILogger<ReviewService>>();
+        _reviewService = new ReviewService(_mockReviewRepo.Object, _mockHotelRepo.Object, mockLogger.Object);
     }
 
-    // CreateReviewAsync tests
     [Fact]
     public async Task CreateReviewAsync_WithValidData_ReturnsReviewResponse()
     {
         // Arrange
+        _mockHotelRepo
+            .Setup(r => r.GetByIdAsync(1))
+            .ReturnsAsync(new Hotel
+            {
+                Id = 1, Name = "Test Hotel", StarRate = 4, Owner = "Owner",
+                Description = "Desc", PricePerNight = 100m, ThumbnailUrl = "url", CityId = 1
+            });
+
         _mockReviewRepo
             .Setup(r => r.GetByUserAndHotelAsync(1, 1))
             .ReturnsAsync((Review?)null);
@@ -59,9 +67,39 @@ public class ReviewServiceTests
     }
 
     [Fact]
+    public async Task CreateReviewAsync_WithNonExistentHotel_ThrowsKeyNotFoundException()
+    {
+        // Arrange
+        _mockHotelRepo
+            .Setup(r => r.GetByIdAsync(999))
+            .ReturnsAsync((Hotel?)null);
+
+        var request = new CreateReviewRequest
+        {
+            HotelId = 999,
+            Rating = 4,
+            Comment = "Review for non-existent hotel"
+        };
+
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            _reviewService.CreateReviewAsync(1, request));
+
+        _mockReviewRepo.Verify(r => r.AddAsync(It.IsAny<Review>()), Times.Never);
+    }
+
+    [Fact]
     public async Task CreateReviewAsync_WithDuplicateReview_ThrowsInvalidOperationException()
     {
         // Arrange — user already reviewed this hotel
+        _mockHotelRepo
+            .Setup(r => r.GetByIdAsync(1))
+            .ReturnsAsync(new Hotel
+            {
+                Id = 1, Name = "Test Hotel", StarRate = 4, Owner = "Owner",
+                Description = "Desc", PricePerNight = 100m, ThumbnailUrl = "url", CityId = 1
+            });
+
         var existingReview = CreateTestReview(1, 1, 1);
         _mockReviewRepo
             .Setup(r => r.GetByUserAndHotelAsync(1, 1))
@@ -80,14 +118,14 @@ public class ReviewServiceTests
 
         _mockReviewRepo.Verify(r => r.AddAsync(It.IsAny<Review>()), Times.Never);
     }
-    // DeleteReviewAsync tests
+
     [Fact]
     public async Task DeleteReviewAsync_WithOwnReview_Succeeds()
     {
         // Arrange
         var review = CreateTestReview(1, 1, 1);
         _mockReviewRepo
-            .Setup(r => r.GetByIdAsync(1))
+            .Setup(r => r.GetByIdWithUserAsync(1))
             .ReturnsAsync(review);
 
         // Act
@@ -102,7 +140,7 @@ public class ReviewServiceTests
     {
         // Arrange
         _mockReviewRepo
-            .Setup(r => r.GetByIdAsync(67))
+            .Setup(r => r.GetByIdWithUserAsync(67))
             .ReturnsAsync((Review?)null);
 
         // Act & Assert
@@ -116,7 +154,7 @@ public class ReviewServiceTests
         // Arrange — review belongs to user 1, but user 2 tries to delete
         var review = CreateTestReview(1, 1, 1);
         _mockReviewRepo
-            .Setup(r => r.GetByIdAsync(1))
+            .Setup(r => r.GetByIdWithUserAsync(1))
             .ReturnsAsync(review);
 
         // Act & Assert — user 2 trying to delete user 1's review
@@ -126,7 +164,6 @@ public class ReviewServiceTests
         _mockReviewRepo.Verify(r => r.DeleteAsync(It.IsAny<Review>()), Times.Never);
     }
 
-    // GetReviewsByHotelIdAsync tests
     [Fact]
     public async Task GetReviewsByHotelIdAsync_WithReviews_ReturnsReviewList()
     {
@@ -162,7 +199,6 @@ public class ReviewServiceTests
         Assert.Empty(result);
     }
 
-    // Helper methods for creating test data
     private Review CreateTestReview(int id, int userId, int hotelId)
     {
         return new Review

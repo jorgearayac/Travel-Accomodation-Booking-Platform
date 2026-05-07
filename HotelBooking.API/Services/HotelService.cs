@@ -1,4 +1,4 @@
-﻿using HotelBooking.API.DTOs.Hotels;
+using HotelBooking.API.DTOs.Hotels;
 using HotelBooking.API.DTOs.Pagination;
 using HotelBooking.API.DTOs.Reviews;
 using HotelBooking.API.DTOs.Rooms;
@@ -12,15 +12,23 @@ namespace HotelBooking.API.Services;
 public class HotelService : IHotelService
 {
     private readonly IHotelRepository _hotelRepository;
+    private readonly ICityRepository _cityRepository;
+    private readonly ILogger<HotelService> _logger;
 
-    public HotelService(IHotelRepository hotelRepository)
+    public HotelService(
+        IHotelRepository hotelRepository,
+        ICityRepository cityRepository,
+        ILogger<HotelService> logger)
     {
         _hotelRepository = hotelRepository;
+        _cityRepository = cityRepository;
+        _logger = logger;
     }
+
     public async Task<PaginationResponse<HotelResponse>> GetAllHotelsAsync(PaginationRequest pagination)
     {
         var (hotels, totalCount) = await _hotelRepository.GetPaginatedWithRoomsAsync(pagination.PageNumber, pagination.PageSize);
-        var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize); // Math.Ceiling to round up to the nearest whole number
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize);
 
         return new PaginationResponse<HotelResponse>
         {
@@ -46,6 +54,12 @@ public class HotelService : IHotelService
 
     public async Task<HotelResponse> CreateHotelAsync(HotelRequest request)
     {
+        var city = await _cityRepository.GetByIdAsync(request.CityId);
+        if (city == null)
+        {
+            throw new KeyNotFoundException($"City with Id {request.CityId} not found.");
+        }
+
         var hotel = new Hotel
         {
             CityId = request.CityId,
@@ -61,6 +75,7 @@ public class HotelService : IHotelService
             UpdatedDate = DateTime.UtcNow
         };
         await _hotelRepository.AddAsync(hotel);
+        _logger.LogInformation("Hotel {HotelName} created in city {CityId}", request.Name, request.CityId);
         return MapToResponse(hotel);
     }
 
@@ -71,7 +86,7 @@ public class HotelService : IHotelService
         {
             throw new KeyNotFoundException($"Hotel with Id {id} not found.");
         }
-        hotel.CityId = request.CityId; // may refactor later
+        hotel.CityId = request.CityId;
         hotel.Name = request.Name;
         hotel.StarRate = request.StarRate;
         hotel.Owner = request.Owner;
@@ -85,6 +100,7 @@ public class HotelService : IHotelService
         await _hotelRepository.UpdateAsync(hotel);
         return MapToResponse(hotel);
     }
+
     public async Task DeleteHotelAsync(int id)
     {
         var hotel = await _hotelRepository.GetByIdAsync(id);
@@ -93,6 +109,7 @@ public class HotelService : IHotelService
             throw new KeyNotFoundException($"Hotel with Id {id} not found.");
         }
         await _hotelRepository.DeleteAsync(hotel);
+        _logger.LogInformation("Hotel {HotelId} deleted", id);
     }
 
     public async Task<PaginationResponse<HotelResponse>> SearchHotelsAsync(HotelSearchRequest request)
@@ -132,7 +149,6 @@ public class HotelService : IHotelService
         return MapToDetailsResponse(hotel);
     }
 
-    // Helper method to map Hotel entity to HotelResponse DTO
     private HotelResponse MapToResponse(Hotel hotel)
     {
         return new HotelResponse
@@ -152,7 +168,6 @@ public class HotelService : IHotelService
         };
     }
 
-    // Helper method to map Hotel entity to HotelDetailsResponse DTO, including related entities like images, reviews, and rooms
     private HotelDetailsResponse MapToDetailsResponse(Hotel hotel)
     {
         return new HotelDetailsResponse

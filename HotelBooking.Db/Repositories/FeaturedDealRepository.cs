@@ -12,6 +12,7 @@ public class FeaturedDealRepository : Repository<FeaturedDeal>, IFeaturedDealRep
     public async Task<IEnumerable<FeaturedDeal>> GetAllWithHotelAndCityAsync()
     {
         return await _dbSet
+            .AsNoTracking()
             .Include(fd => fd.Hotel)
             .ThenInclude(h => h.City)
             .ToListAsync();
@@ -20,6 +21,7 @@ public class FeaturedDealRepository : Repository<FeaturedDeal>, IFeaturedDealRep
     public async Task<FeaturedDeal?> GetByIdWithHotelAndCityAsync(int id)
     {
         return await _dbSet
+            .AsNoTracking()
             .Include(fd => fd.Hotel)
             .ThenInclude(h => h.City)
             .FirstOrDefaultAsync(fd => fd.Id == id);

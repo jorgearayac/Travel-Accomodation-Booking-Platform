@@ -12,13 +12,17 @@ public class HotelRepository : Repository<Hotel>, IHotelRepository
 
     public async Task<IEnumerable<Hotel>> GetAllWithRoomsAsync()
     {
-        return await _dbSet.Include(h => h.Rooms)
+        return await _dbSet
+            .AsNoTracking()
+            .Include(h => h.Rooms)
             .ToListAsync();
     }
 
     public async Task<Hotel?> GetByIdWithRoomsAsync(int id)
     {
-        return await _dbSet.Include(h => h.Rooms)
+        return await _dbSet
+            .AsNoTracking()
+            .Include(h => h.Rooms)
             .FirstOrDefaultAsync(h => h.Id == id);
     }
 
@@ -26,6 +30,7 @@ public class HotelRepository : Repository<Hotel>, IHotelRepository
     {
         var totalCount = await _dbSet.CountAsync();
         var items = await _dbSet
+            .AsNoTracking()
             .Include(h => h.Rooms)
             .OrderBy(h => h.Id)
             .Skip((pageNumber - 1) * pageSize)
@@ -46,6 +51,7 @@ public class HotelRepository : Repository<Hotel>, IHotelRepository
         int pageSize)
     {
         var queryable = _dbSet
+            .AsNoTracking()
             .Include(h => h.City)
             .Include(h => h.Rooms)
             .AsQueryable();
@@ -75,9 +81,8 @@ public class HotelRepository : Repository<Hotel>, IHotelRepository
         }
 
         // room type
-        if (!string.IsNullOrWhiteSpace(roomType))
+        if (!string.IsNullOrWhiteSpace(roomType) && Enum.TryParse<RoomType>(roomType, ignoreCase: true, out var parsedRoomType))
         {
-            var parsedRoomType = Enum.Parse<RoomType>(roomType);
             queryable = queryable.Where(h => h.Rooms.Any(r => r.RoomType == parsedRoomType));
         }
 
@@ -103,6 +108,7 @@ public class HotelRepository : Repository<Hotel>, IHotelRepository
     public async Task<Hotel?> GetByIdWithFullDetailsAsync(int id)
     {
         return await _dbSet
+            .AsNoTracking()
             .Include(h => h.City)
             .Include(h => h.HotelImages)
             .Include(h => h.Reviews)

@@ -9,11 +9,12 @@ namespace HotelBooking.API.Interfaces;
 public interface IBookingService
 {
     /// <summary>
-    /// Retrieves a booking by its Id.
+    /// Retrieves a booking by its Id, verifying it belongs to the specified user.
     /// </summary>
     /// <param name="id">The Id of the booking to search for.</param>
-    /// <returns>BookingResponse if found, null otherwise.</returns>
-    Task<BookingResponse> GetBookingByIdAsync(int id);
+    /// <param name="userId">The Id of the requesting user.</param>
+    /// <returns>BookingResponse if found and owned by the user.</returns>
+    Task<BookingResponse> GetBookingByIdAsync(int id, int userId);
 
     /// <summary>
     /// Retrieves all bookings made by a user.

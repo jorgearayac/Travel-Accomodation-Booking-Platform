@@ -16,10 +16,11 @@ public class ReviewRepository : Repository<Review>, IReviewRepository
     public async Task<IEnumerable<Review>> GetByHotelIdAsync(int hotelId)
     {
         return await _dbSet
+            .AsNoTracking()
             .Include(r => r.User)
             .Include(r => r.Hotel)
             .Where(r => r.HotelId == hotelId)
-            .OrderByDescending(r => r.CreatedDate) // Order reviews by most recent first
+            .OrderByDescending(r => r.CreatedDate)
             .ToListAsync();
     }
 
@@ -34,6 +35,7 @@ public class ReviewRepository : Repository<Review>, IReviewRepository
     public async Task<Review?> GetByUserAndHotelAsync(int userId, int hotelId)
     {
         return await _dbSet
+            .AsNoTracking()
             .FirstOrDefaultAsync(r => r.UserId == userId && r.HotelId == hotelId);
     }
 }

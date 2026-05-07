@@ -1,4 +1,4 @@
-﻿using HotelBooking.API.DTOs.FeaturedDeals;
+using HotelBooking.API.DTOs.FeaturedDeals;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Interfaces;
 using HotelBooking.Db.Models;
@@ -8,10 +8,17 @@ namespace HotelBooking.API.Services;
 public class FeaturedDealService : IFeaturedDealService
 {
     private readonly IFeaturedDealRepository _featuredDealRepository;
+    private readonly IHotelRepository _hotelRepository;
+    private readonly ILogger<FeaturedDealService> _logger;
 
-    public FeaturedDealService(IFeaturedDealRepository featuredDealRepository)
+    public FeaturedDealService(
+        IFeaturedDealRepository featuredDealRepository,
+        IHotelRepository hotelRepository,
+        ILogger<FeaturedDealService> logger)
     {
         _featuredDealRepository = featuredDealRepository;
+        _hotelRepository = hotelRepository;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<FeaturedDealResponse>> GetAllFeaturedDealsAsync()
@@ -32,6 +39,17 @@ public class FeaturedDealService : IFeaturedDealService
 
     public async Task<FeaturedDealResponse> CreateFeaturedDealAsync(FeaturedDealRequest request)
     {
+        var hotel = await _hotelRepository.GetByIdAsync(request.HotelId);
+        if (hotel == null)
+        {
+            throw new KeyNotFoundException($"Hotel with Id {request.HotelId} not found.");
+        }
+
+        if (request.DiscountedPrice >= request.OriginalPrice)
+        {
+            throw new ArgumentException("Discounted price must be less than the original price.");
+        }
+
         var deal = new FeaturedDeal
         {
             HotelId = request.HotelId,
@@ -43,7 +61,8 @@ public class FeaturedDealService : IFeaturedDealService
         };
         await _featuredDealRepository.AddAsync(deal);
 
-        // reload with hotel and city included
+        _logger.LogInformation("Featured deal created for hotel {HotelId}", request.HotelId);
+
         var createdDeal = await _featuredDealRepository.GetByIdWithHotelAndCityAsync(deal.Id);
         return MapToResponse(createdDeal!);
     }
@@ -55,6 +74,12 @@ public class FeaturedDealService : IFeaturedDealService
         {
             throw new KeyNotFoundException($"Featured deal with Id {id} not found.");
         }
+
+        if (request.DiscountedPrice >= request.OriginalPrice)
+        {
+            throw new ArgumentException("Discounted price must be less than the original price.");
+        }
+
         deal.HotelId = request.HotelId;
         deal.OriginalPrice = request.OriginalPrice;
         deal.DiscountedPrice = request.DiscountedPrice;
@@ -63,7 +88,6 @@ public class FeaturedDealService : IFeaturedDealService
 
         await _featuredDealRepository.UpdateAsync(deal);
 
-        // reload with hotel and city included
         var updatedDeal = await _featuredDealRepository.GetByIdWithHotelAndCityAsync(deal.Id);
         return MapToResponse(updatedDeal!);
     }
@@ -76,9 +100,9 @@ public class FeaturedDealService : IFeaturedDealService
             throw new KeyNotFoundException($"Featured deal with Id {id} not found.");
         }
         await _featuredDealRepository.DeleteAsync(deal);
+        _logger.LogInformation("Featured deal {DealId} deleted", id);
     }
 
-    // Helper method to map FeaturedDeal to FeaturedDealResponse
     private FeaturedDealResponse MapToResponse(FeaturedDeal deal)
     {
         return new FeaturedDealResponse

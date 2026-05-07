@@ -11,6 +11,7 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
     public async Task<Booking?> GetByIdWithDetailsAsync(int id)
     {
         return await _dbSet
+            .AsNoTracking()
             .Include(b => b.BookingRooms)
             .ThenInclude(br => br.Room)
             .ThenInclude(r => r.Hotel)
@@ -20,6 +21,7 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
     public async Task<IEnumerable<Booking>> GetByUserIdAsync(int userId)
     {
         return await _dbSet
+            .AsNoTracking()
             .Include(b => b.BookingRooms)
             .ThenInclude(br => br.Room)
             .ThenInclude(r => r.Hotel)

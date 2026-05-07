@@ -12,6 +12,7 @@ public class HotelImageRepository : Repository<HotelImage>, IHotelImageRepositor
     public async Task<IEnumerable<HotelImage>> GetByHotelIdAsync(int hotelId)
     {
         return await _dbSet
+            .AsNoTracking()
             .Where(hi => hi.HotelId == hotelId)
             .ToListAsync();
     }

@@ -23,5 +23,6 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
 
         builder.ToTable(t => t.HasCheckConstraint("CK_Booking_NumberOfAdults", "[NumberOfAdults] >= 1 AND [NumberOfAdults] <= 10"));
         builder.ToTable(t => t.HasCheckConstraint("CK_Booking_NumberOfChildren", "[NumberOfChildren] >= 0 AND [NumberOfChildren] <= 10"));
+        builder.ToTable(t => t.HasCheckConstraint("CK_Booking_DateRange", "[CheckInDate] < [CheckOutDate]"));
     }
 }

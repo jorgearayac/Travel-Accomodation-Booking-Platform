@@ -1,4 +1,4 @@
-﻿using HotelBooking.API.DTOs.Reviews;
+using HotelBooking.API.DTOs.Reviews;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Interfaces;
 using HotelBooking.Db.Models;
@@ -8,10 +8,17 @@ namespace HotelBooking.API.Services;
 public class ReviewService : IReviewService
 {
     private readonly IReviewRepository _reviewRepository;
+    private readonly IHotelRepository _hotelRepository;
+    private readonly ILogger<ReviewService> _logger;
 
-    public ReviewService(IReviewRepository reviewRepository)
+    public ReviewService(
+        IReviewRepository reviewRepository,
+        IHotelRepository hotelRepository,
+        ILogger<ReviewService> logger)
     {
         _reviewRepository = reviewRepository;
+        _hotelRepository = hotelRepository;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<ReviewResponse>> GetReviewsByHotelIdAsync(int hotelId)
@@ -20,9 +27,14 @@ public class ReviewService : IReviewService
         return reviews.Select(MapToResponse);
     }
 
-    // TO DO: tie reviews to BookingId for one review per booking, and only allow reviews for completed bookings.
     public async Task<ReviewResponse> CreateReviewAsync(int userId, CreateReviewRequest request)
     {
+        var hotel = await _hotelRepository.GetByIdAsync(request.HotelId);
+        if (hotel == null)
+        {
+            throw new KeyNotFoundException($"Hotel with Id {request.HotelId} not found.");
+        }
+
         var existingReview = await _reviewRepository.GetByUserAndHotelAsync(userId, request.HotelId);
         if (existingReview != null)
         {
@@ -40,8 +52,8 @@ public class ReviewService : IReviewService
         };
 
         await _reviewRepository.AddAsync(review);
+        _logger.LogInformation("Review created by user {UserId} for hotel {HotelId}", userId, request.HotelId);
 
-        // Reload with user data 
         var createdReview = await _reviewRepository.GetByIdWithUserAsync(review.Id);
         return MapToResponse(createdReview!);
     }
@@ -60,6 +72,7 @@ public class ReviewService : IReviewService
         }
 
         await _reviewRepository.DeleteAsync(review);
+        _logger.LogInformation("Review {ReviewId} deleted by user {UserId}", reviewId, userId);
     }
 
     private ReviewResponse MapToResponse(Review review)

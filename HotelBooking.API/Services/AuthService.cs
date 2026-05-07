@@ -1,4 +1,4 @@
-﻿using HotelBooking.API.DTOs.Auth;
+using HotelBooking.API.DTOs.Auth;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Enums;
 using HotelBooking.Db.Interfaces;
@@ -6,18 +6,17 @@ using HotelBooking.Db.Models;
 
 namespace HotelBooking.API.Services;
 
-/// <summary>
-/// Authentication service that handles user registration and login.
-/// </summary>
 public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
+    private readonly ILogger<AuthService> _logger;
 
-    public AuthService(IUserRepository userRepository, ITokenService tokenService)
+    public AuthService(IUserRepository userRepository, ITokenService tokenService, ILogger<AuthService> logger)
     {
         _userRepository = userRepository;
         _tokenService = tokenService;
+        _logger = logger;
     }
 
     public async Task<AuthResponse> RegisterUserAsync(RegisterRequest request)
@@ -34,7 +33,7 @@ public class AuthService : IAuthService
             throw new ArgumentException("Email already exists.");
         }
 
-        var user = new User // refactor later
+        var user = new User
         {
             Username = request.Username,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
@@ -47,6 +46,7 @@ public class AuthService : IAuthService
         };
 
         await _userRepository.AddAsync(user);
+        _logger.LogInformation("User {Username} registered", request.Username);
         return BuildAuthResponse(user);
     }
 
@@ -57,10 +57,10 @@ public class AuthService : IAuthService
         {
             throw new UnauthorizedAccessException("Invalid username or password.");
         }
+        _logger.LogInformation("User {Username} logged in", request.Username);
         return BuildAuthResponse(user);
     }
 
-    // Helper method, refactor later
     private AuthResponse BuildAuthResponse(User user)
     {
         var token = _tokenService.GenerateToken(user);

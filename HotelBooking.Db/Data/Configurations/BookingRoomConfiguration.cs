@@ -10,6 +10,8 @@ public class BookingRoomConfiguration : IEntityTypeConfiguration<BookingRoom>
     {
         builder.HasKey(br => br.Id);
 
+        builder.HasIndex(br => new { br.BookingId, br.RoomId }).IsUnique();
+
         builder.Property(br => br.PriceAtBooking).HasPrecision(10, 2);
 
         builder.HasOne(br => br.Booking)

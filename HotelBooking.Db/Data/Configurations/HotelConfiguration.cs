@@ -22,5 +22,6 @@ public class HotelConfiguration : IEntityTypeConfiguration<Hotel>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.ToTable(t => t.HasCheckConstraint("CK_Hotel_StarRate", "[StarRate] >= 1 AND [StarRate] <= 5"));
+        builder.ToTable(t => t.HasCheckConstraint("CK_Hotel_PricePerNight", "[PricePerNight] > 0"));
     }
 }

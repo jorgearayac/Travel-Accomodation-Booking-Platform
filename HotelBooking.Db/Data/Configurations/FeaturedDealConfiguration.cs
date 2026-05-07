@@ -18,5 +18,8 @@ public class FeaturedDealConfiguration : IEntityTypeConfiguration<FeaturedDeal>
             .WithMany(h => h.FeaturedDeals)
             .HasForeignKey(fd => fd.HotelId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.ToTable(t => t.HasCheckConstraint("CK_FeaturedDeal_OriginalPrice", "[OriginalPrice] > 0"));
+        builder.ToTable(t => t.HasCheckConstraint("CK_FeaturedDeal_DiscountedPrice", "[DiscountedPrice] > 0 AND [DiscountedPrice] < [OriginalPrice]"));
     }
 }
