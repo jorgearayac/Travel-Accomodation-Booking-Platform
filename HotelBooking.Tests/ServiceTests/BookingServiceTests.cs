@@ -1,3 +1,4 @@
+using HotelBooking.API.Common;
 using HotelBooking.API.DTOs.Bookings;
 using HotelBooking.API.Services;
 using HotelBooking.Db.Data;
@@ -87,18 +88,18 @@ public class BookingServiceTests : IDisposable
         // Act
         var result = await _bookingService.CreateBookingAsync(1, bookingRequest);
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(1, result.UserId);
-        Assert.Equal(bookingRequest.CheckInDate, result.CheckInDate);
-        Assert.Equal(bookingRequest.CheckOutDate, result.CheckOutDate);
-        Assert.Equal(bookingRequest.NumberOfAdults, result.NumberOfAdults);
-        Assert.Equal(bookingRequest.NumberOfChildren, result.NumberOfChildren);
-        Assert.Equal(bookingRequest.PaymentMethod.ToString(), result.PaymentMethod);
-        Assert.Equal(testRooms.Count, result.Rooms.Count);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.Value!.UserId);
+        Assert.Equal(bookingRequest.CheckInDate, result.Value.CheckInDate);
+        Assert.Equal(bookingRequest.CheckOutDate, result.Value.CheckOutDate);
+        Assert.Equal(bookingRequest.NumberOfAdults, result.Value.NumberOfAdults);
+        Assert.Equal(bookingRequest.NumberOfChildren, result.Value.NumberOfChildren);
+        Assert.Equal(bookingRequest.PaymentMethod.ToString(), result.Value.PaymentMethod);
+        Assert.Equal(testRooms.Count, result.Value.Rooms.Count);
     }
 
     [Fact]
-    public async Task CreateBookingAsync_WithCheckInInThePast_ThrowsArgumentException()
+    public async Task CreateBookingAsync_WithCheckInInThePast_ReturnsValidationError()
     {
         // Arrange
         var request = new CreateBookingRequest
@@ -111,13 +112,16 @@ public class BookingServiceTests : IDisposable
             RoomIds = new List<int> { 1 }
         };
 
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _bookingService.CreateBookingAsync(1, request));
+        // Act
+        var result = await _bookingService.CreateBookingAsync(1, request);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Validation, result.Error!.Type);
     }
 
     [Fact]
-    public async Task CreateBookingAsync_WithCheckOutBeforeCheckIn_ThrowsArgumentException()
+    public async Task CreateBookingAsync_WithCheckOutBeforeCheckIn_ReturnsValidationError()
     {
         // Arrange
         var request = new CreateBookingRequest
@@ -130,13 +134,16 @@ public class BookingServiceTests : IDisposable
             RoomIds = new List<int> { 1 }
         };
 
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _bookingService.CreateBookingAsync(1, request));
+        // Act
+        var result = await _bookingService.CreateBookingAsync(1, request);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Validation, result.Error!.Type);
     }
 
     [Fact]
-    public async Task CreateBookingAsync_WithNonExistingRooms_ThrowsKeyNotFoundException()
+    public async Task CreateBookingAsync_WithNonExistingRooms_ReturnsNotFound()
     {
         // Arrange
         var request = CreateTestBookingRequest();
@@ -144,13 +151,16 @@ public class BookingServiceTests : IDisposable
             .Setup(repo => repo.GetRoomsByIdsAsync(It.IsAny<List<int>>()))
             .ReturnsAsync(new List<Room>());
 
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _bookingService.CreateBookingAsync(1, request));
+        // Act
+        var result = await _bookingService.CreateBookingAsync(1, request);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.NotFound, result.Error!.Type);
     }
 
     [Fact]
-    public async Task CreateBookingAsync_WithUnavailableRooms_ThrowsInvalidOperationException()
+    public async Task CreateBookingAsync_WithUnavailableRooms_ReturnsConflictError()
     {
         // Arrange
         var testRooms = CreateTestRooms();
@@ -162,9 +172,12 @@ public class BookingServiceTests : IDisposable
 
         var request = CreateTestBookingRequest();
 
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _bookingService.CreateBookingAsync(1, request));
+        // Act
+        var result = await _bookingService.CreateBookingAsync(1, request);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Conflict, result.Error!.Type);
     }
 
     [Fact]
@@ -210,7 +223,8 @@ public class BookingServiceTests : IDisposable
         var result = await _bookingService.CreateBookingAsync(1, request);
 
         // Assert — $200 + $100 = $300 per night x 3 nights = $900
-        Assert.Equal(900m, result.TotalPrice);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(900m, result.Value!.TotalPrice);
     }
 
     [Fact]
@@ -242,12 +256,12 @@ public class BookingServiceTests : IDisposable
         var result = await _bookingService.GetBookingByIdAsync(1, 1);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(1, result.Id);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.Value!.Id);
     }
 
     [Fact]
-    public async Task GetBookingByIdAsync_WithOtherUsersBooking_ThrowsUnauthorized()
+    public async Task GetBookingByIdAsync_WithOtherUsersBooking_ReturnsUnauthorized()
     {
         // Arrange
         var booking = new Booking
@@ -262,9 +276,12 @@ public class BookingServiceTests : IDisposable
             .Setup(r => r.GetByIdWithDetailsAsync(1))
             .ReturnsAsync(booking);
 
-        // Act & Assert — user 2 trying to access user 1's booking
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _bookingService.GetBookingByIdAsync(1, 2));
+        // Act — user 2 trying to access user 1's booking
+        var result = await _bookingService.GetBookingByIdAsync(1, 2);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Unauthorized, result.Error!.Type);
     }
 
     private List<Room> CreateTestRooms()

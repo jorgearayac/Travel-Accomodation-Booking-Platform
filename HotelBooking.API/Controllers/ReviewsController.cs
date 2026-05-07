@@ -2,14 +2,12 @@ using HotelBooking.API.DTOs.Reviews;
 using HotelBooking.API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace HotelBooking.API.Controllers;
 
-[ApiController]
 [Route("api/reviews")]
 [Authorize]
-public class ReviewsController : ControllerBase
+public class ReviewsController : ApiControllerBase
 {
     private readonly IReviewService _reviewService;
 
@@ -27,8 +25,8 @@ public class ReviewsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetReviewsByHotelId(int hotelId)
     {
-        var reviews = await _reviewService.GetReviewsByHotelIdAsync(hotelId);
-        return Ok(reviews);
+        var result = await _reviewService.GetReviewsByHotelIdAsync(hotelId);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -40,8 +38,8 @@ public class ReviewsController : ControllerBase
     public async Task<IActionResult> CreateReview([FromBody] CreateReviewRequest request)
     {
         var userId = GetCurrentUserId();
-        var review = await _reviewService.CreateReviewAsync(userId, request);
-        return CreatedAtAction(nameof(GetReviewsByHotelId), new { hotelId = review.HotelId }, review);
+        var result = await _reviewService.CreateReviewAsync(userId, request);
+        return CreatedFromResult(result, nameof(GetReviewsByHotelId), r => new { hotelId = r.HotelId });
     }
 
     /// <summary>
@@ -53,14 +51,7 @@ public class ReviewsController : ControllerBase
     public async Task<IActionResult> DeleteReview(int id)
     {
         var userId = GetCurrentUserId();
-        await _reviewService.DeleteReviewAsync(userId, id);
-        return NoContent();
-    }
-
-    private int GetCurrentUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException("User identity not found.");
-        return int.Parse(claim.Value);
+        var result = await _reviewService.DeleteReviewAsync(userId, id);
+        return FromResult(result);
     }
 }

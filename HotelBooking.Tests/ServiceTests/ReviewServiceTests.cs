@@ -1,3 +1,4 @@
+using HotelBooking.API.Common;
 using HotelBooking.API.DTOs.Reviews;
 using HotelBooking.API.Services;
 using HotelBooking.Db.Enums;
@@ -58,16 +59,16 @@ public class ReviewServiceTests
         var result = await _reviewService.CreateReviewAsync(1, request);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(4, result.Rating);
-        Assert.Equal("Great hotel!", result.Comment);
-        Assert.Equal("testuser", result.Username);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(4, result.Value!.Rating);
+        Assert.Equal("Great hotel!", result.Value.Comment);
+        Assert.Equal("testuser", result.Value.Username);
         _mockReviewRepo
             .Verify(r => r.AddAsync(It.IsAny<Review>()), Times.Once);
     }
 
     [Fact]
-    public async Task CreateReviewAsync_WithNonExistentHotel_ThrowsKeyNotFoundException()
+    public async Task CreateReviewAsync_WithNonExistentHotel_ReturnsNotFound()
     {
         // Arrange
         _mockHotelRepo
@@ -81,15 +82,17 @@ public class ReviewServiceTests
             Comment = "Review for non-existent hotel"
         };
 
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _reviewService.CreateReviewAsync(1, request));
+        // Act
+        var result = await _reviewService.CreateReviewAsync(1, request);
 
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.NotFound, result.Error!.Type);
         _mockReviewRepo.Verify(r => r.AddAsync(It.IsAny<Review>()), Times.Never);
     }
 
     [Fact]
-    public async Task CreateReviewAsync_WithDuplicateReview_ThrowsInvalidOperationException()
+    public async Task CreateReviewAsync_WithDuplicateReview_ReturnsConflictError()
     {
         // Arrange — user already reviewed this hotel
         _mockHotelRepo
@@ -112,10 +115,12 @@ public class ReviewServiceTests
             Comment = "Trying to review again"
         };
 
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _reviewService.CreateReviewAsync(1, request));
+        // Act
+        var result = await _reviewService.CreateReviewAsync(1, request);
 
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Conflict, result.Error!.Type);
         _mockReviewRepo.Verify(r => r.AddAsync(It.IsAny<Review>()), Times.Never);
     }
 
@@ -129,27 +134,31 @@ public class ReviewServiceTests
             .ReturnsAsync(review);
 
         // Act
-        await _reviewService.DeleteReviewAsync(1, 1);
+        var result = await _reviewService.DeleteReviewAsync(1, 1);
 
         // Assert
+        Assert.True(result.IsSuccess);
         _mockReviewRepo.Verify(r => r.DeleteAsync(review), Times.Once);
     }
 
     [Fact]
-    public async Task DeleteReviewAsync_WithNonExistentReview_ThrowsKeyNotFoundException()
+    public async Task DeleteReviewAsync_WithNonExistentReview_ReturnsNotFound()
     {
         // Arrange
         _mockReviewRepo
             .Setup(r => r.GetByIdWithUserAsync(67))
             .ReturnsAsync((Review?)null);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _reviewService.DeleteReviewAsync(1, 67));
+        // Act
+        var result = await _reviewService.DeleteReviewAsync(1, 67);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.NotFound, result.Error!.Type);
     }
 
     [Fact]
-    public async Task DeleteReviewAsync_WithOtherUsersReview_ThrowsUnauthorizedAccessException()
+    public async Task DeleteReviewAsync_WithOtherUsersReview_ReturnsUnauthorized()
     {
         // Arrange — review belongs to user 1, but user 2 tries to delete
         var review = CreateTestReview(1, 1, 1);
@@ -157,10 +166,12 @@ public class ReviewServiceTests
             .Setup(r => r.GetByIdWithUserAsync(1))
             .ReturnsAsync(review);
 
-        // Act & Assert — user 2 trying to delete user 1's review
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _reviewService.DeleteReviewAsync(2, 1));
+        // Act — user 2 trying to delete user 1's review
+        var result = await _reviewService.DeleteReviewAsync(2, 1);
 
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Unauthorized, result.Error!.Type);
         _mockReviewRepo.Verify(r => r.DeleteAsync(It.IsAny<Review>()), Times.Never);
     }
 
@@ -181,7 +192,8 @@ public class ReviewServiceTests
         var result = await _reviewService.GetReviewsByHotelIdAsync(1);
 
         // Assert
-        Assert.Equal(2, result.Count());
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, result.Value!.Count());
     }
 
     [Fact]
@@ -196,7 +208,8 @@ public class ReviewServiceTests
         var result = await _reviewService.GetReviewsByHotelIdAsync(67);
 
         // Assert
-        Assert.Empty(result);
+        Assert.True(result.IsSuccess);
+        Assert.Empty(result.Value!);
     }
 
     private Review CreateTestReview(int id, int userId, int hotelId)

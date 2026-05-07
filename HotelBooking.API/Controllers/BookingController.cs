@@ -2,14 +2,12 @@ using HotelBooking.API.DTOs.Bookings;
 using HotelBooking.API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace HotelBooking.API.Controllers;
 
-[ApiController]
 [Route("api/booking")]
 [Authorize]
-public class BookingController : ControllerBase
+public class BookingController : ApiControllerBase
 {
     private readonly IBookingService _bookingService;
 
@@ -27,8 +25,8 @@ public class BookingController : ControllerBase
     public async Task<IActionResult> GetBookingById(int id)
     {
         var userId = GetCurrentUserId();
-        var booking = await _bookingService.GetBookingByIdAsync(id, userId);
-        return Ok(booking);
+        var result = await _bookingService.GetBookingByIdAsync(id, userId);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -39,8 +37,8 @@ public class BookingController : ControllerBase
     public async Task<IActionResult> GetBookingByUser()
     {
         var userId = GetCurrentUserId();
-        var bookings = await _bookingService.GetBookingsByUserAsync(userId);
-        return Ok(bookings);
+        var result = await _bookingService.GetBookingsByUserAsync(userId);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -52,14 +50,7 @@ public class BookingController : ControllerBase
     public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
     {
         var userId = GetCurrentUserId();
-        var booking = await _bookingService.CreateBookingAsync(userId, request);
-        return CreatedAtAction(nameof(GetBookingById), new { id = booking.Id }, booking);
-    }
-
-    private int GetCurrentUserId()
-    {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException("User identity not found.");
-        return int.Parse(claim.Value);
+        var result = await _bookingService.CreateBookingAsync(userId, request);
+        return CreatedFromResult(result, nameof(GetBookingById), b => new { id = b.Id });
     }
 }

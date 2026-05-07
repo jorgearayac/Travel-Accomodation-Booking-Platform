@@ -1,3 +1,4 @@
+using HotelBooking.API.Common;
 using HotelBooking.API.DTOs.Cities;
 using HotelBooking.API.DTOs.Home;
 using HotelBooking.API.DTOs.Pagination;
@@ -18,12 +19,12 @@ public class CityService : ICityService
         _logger = logger;
     }
 
-    public async Task<PaginationResponse<CityResponse>> GetAllCitiesAsync(PaginationRequest pagination)
+    public async Task<Result<PaginationResponse<CityResponse>>> GetAllCitiesAsync(PaginationRequest pagination)
     {
         var (cities, totalCount) = await _cityRepository.GetPaginatedWithHotelsAsync(pagination.PageNumber, pagination.PageSize);
         var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize);
 
-        return new PaginationResponse<CityResponse>
+        return Result<PaginationResponse<CityResponse>>.Success(new PaginationResponse<CityResponse>
         {
             Items = cities.Select(MapToResponse),
             TotalCount = totalCount,
@@ -32,20 +33,20 @@ public class CityService : ICityService
             TotalPages = totalPages,
             HasPreviousPage = pagination.PageNumber > 1,
             HasNextPage = pagination.PageNumber < totalPages
-        };
+        });
     }
 
-    public async Task<CityResponse> GetCityByIdAsync(int id)
+    public async Task<Result<CityResponse>> GetCityByIdAsync(int id)
     {
         var city = await _cityRepository.GetByIdWithHotelsAsync(id);
         if (city == null)
         {
-            throw new KeyNotFoundException($"City with Id {id} not found.");
+            return Result<CityResponse>.NotFound($"City with Id {id} not found.");
         }
-        return MapToResponse(city);
+        return Result<CityResponse>.Success(MapToResponse(city));
     }
 
-    public async Task<CityResponse> CreateCityAsync(CityRequest request)
+    public async Task<Result<CityResponse>> CreateCityAsync(CityRequest request)
     {
         var city = new City
         {
@@ -58,15 +59,15 @@ public class CityService : ICityService
         };
         await _cityRepository.AddAsync(city);
         _logger.LogInformation("City {CityName} created", request.Name);
-        return MapToResponse(city);
+        return Result<CityResponse>.Success(MapToResponse(city));
     }
 
-    public async Task<CityResponse> UpdateCityAsync(int id, CityRequest request)
+    public async Task<Result<CityResponse>> UpdateCityAsync(int id, CityRequest request)
     {
         var city = await _cityRepository.GetByIdAsync(id);
         if (city == null)
         {
-            throw new KeyNotFoundException($"City with Id {id} not found.");
+            return Result<CityResponse>.NotFound($"City with Id {id} not found.");
         }
         city.Name = request.Name;
         city.Country = request.Country;
@@ -75,24 +76,25 @@ public class CityService : ICityService
         city.UpdatedDate = DateTime.UtcNow;
 
         await _cityRepository.UpdateAsync(city);
-        return MapToResponse(city);
+        return Result<CityResponse>.Success(MapToResponse(city));
     }
 
-    public async Task DeleteCityAsync(int id)
+    public async Task<Result> DeleteCityAsync(int id)
     {
         var city = await _cityRepository.GetByIdAsync(id);
         if (city == null)
         {
-            throw new KeyNotFoundException($"City with Id {id} not found.");
+            return Result.NotFound($"City with Id {id} not found.");
         }
         await _cityRepository.DeleteAsync(city);
         _logger.LogInformation("City {CityId} deleted", id);
+        return Result.Success();
     }
 
-    public async Task<IEnumerable<TrendingDestinationResponse>> GetTrendingDestinationsAsync()
+    public async Task<Result<IEnumerable<TrendingDestinationResponse>>> GetTrendingDestinationsAsync()
     {
         var results = await _cityRepository.GetTopBookedCitiesAsync(5);
-        return results.Select(r => new TrendingDestinationResponse
+        var destinations = results.Select(r => new TrendingDestinationResponse
         {
             CityId = r.City.Id,
             CityName = r.City.Name,
@@ -100,6 +102,8 @@ public class CityService : ICityService
             ThumbnailUrl = r.City.ThumbnailUrl ?? "",
             BookingCount = r.BookingCount
         });
+
+        return Result<IEnumerable<TrendingDestinationResponse>>.Success(destinations);
     }
 
     private CityResponse MapToResponse(City city)

@@ -6,10 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBooking.API.Controllers;
 
-[ApiController]
 [Route("api/cities")]
 [Authorize]
-public class CitiesController : ControllerBase
+public class CitiesController : ApiControllerBase
 {
     private readonly ICityService _cityService;
 
@@ -26,8 +25,8 @@ public class CitiesController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetAllCities([FromQuery] PaginationRequest pagination)
     {
-        var cities = await _cityService.GetAllCitiesAsync(pagination);
-        return Ok(cities);
+        var result = await _cityService.GetAllCitiesAsync(pagination);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -39,8 +38,8 @@ public class CitiesController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetCityById(int id)
     {
-        var city = await _cityService.GetCityByIdAsync(id);
-        return Ok(city);
+        var result = await _cityService.GetCityByIdAsync(id);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -52,8 +51,8 @@ public class CitiesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateCity([FromBody] CityRequest request)
     {
-        var city = await _cityService.CreateCityAsync(request);
-        return CreatedAtAction(nameof(GetCityById), new { id = city.Id }, city);
+        var result = await _cityService.CreateCityAsync(request);
+        return CreatedFromResult(result, nameof(GetCityById), c => new { id = c.Id });
     }
 
     /// <summary>
@@ -66,8 +65,8 @@ public class CitiesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateCity(int id, [FromBody] CityRequest request)
     {
-        var city = await _cityService.UpdateCityAsync(id, request);
-        return Ok(city);
+        var result = await _cityService.UpdateCityAsync(id, request);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -79,7 +78,7 @@ public class CitiesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteCity(int id)
     {
-        await _cityService.DeleteCityAsync(id);
-        return NoContent();
+        var result = await _cityService.DeleteCityAsync(id);
+        return FromResult(result);
     }
 }

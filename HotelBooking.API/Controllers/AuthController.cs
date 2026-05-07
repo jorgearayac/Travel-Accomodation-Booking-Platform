@@ -5,9 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBooking.API.Controllers;
 
-[ApiController]
 [Route("api/auth")]
-public class AuthController : ControllerBase
+public class AuthController : ApiControllerBase
 {
     private readonly IAuthService _authService;
 
@@ -26,8 +25,8 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var response = await _authService.RegisterUserAsync(request);
-        return Ok(response);
+        var result = await _authService.RegisterUserAsync(request);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -40,7 +39,7 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var response = await _authService.LoginUserAsync(request);
-        return Ok(response);
+        var result = await _authService.LoginUserAsync(request);
+        return FromResult(result);
     }
 }

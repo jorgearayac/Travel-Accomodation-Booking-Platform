@@ -1,3 +1,4 @@
+using HotelBooking.API.Common;
 using HotelBooking.API.DTOs.Bookings;
 using HotelBooking.API.DTOs.Home;
 using HotelBooking.API.Interfaces;
@@ -27,39 +28,39 @@ public class BookingService : IBookingService
         _logger = logger;
     }
 
-    public async Task<BookingResponse> GetBookingByIdAsync(int id, int userId)
+    public async Task<Result<BookingResponse>> GetBookingByIdAsync(int id, int userId)
     {
         var booking = await _bookingRepository.GetByIdWithDetailsAsync(id);
         if (booking == null)
         {
-            throw new KeyNotFoundException($"Booking with Id {id} not found.");
+            return Result<BookingResponse>.NotFound($"Booking with Id {id} not found.");
         }
 
         if (booking.UserId != userId)
         {
-            throw new UnauthorizedAccessException("You can only view your own bookings.");
+            return Result<BookingResponse>.Unauthorized("You can only view your own bookings.");
         }
 
-        return MapToResponse(booking);
+        return Result<BookingResponse>.Success(MapToResponse(booking));
     }
 
-    public async Task<IEnumerable<BookingResponse>> GetBookingsByUserAsync(int userId)
+    public async Task<Result<IEnumerable<BookingResponse>>> GetBookingsByUserAsync(int userId)
     {
         var bookings = await _bookingRepository.GetByUserIdAsync(userId);
-        return bookings.Select(MapToResponse);
+        return Result<IEnumerable<BookingResponse>>.Success(bookings.Select(MapToResponse));
     }
 
-    public async Task<BookingResponse> CreateBookingAsync(int userId, CreateBookingRequest request)
+    public async Task<Result<BookingResponse>> CreateBookingAsync(int userId, CreateBookingRequest request)
     {
         if (request.CheckInDate.Date < DateTime.UtcNow.Date)
         {
-            throw new ArgumentException("Check-in date cannot be in the past.");
+            return Result<BookingResponse>.ValidationError("Check-in date cannot be in the past.");
         }
 
         var nights = (request.CheckOutDate - request.CheckInDate).Days;
         if (nights <= 0)
         {
-            throw new ArgumentException("Check-out date must be after check-in date.");
+            return Result<BookingResponse>.ValidationError("Check-out date must be after check-in date.");
         }
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -69,13 +70,13 @@ public class BookingService : IBookingService
             var rooms = await _roomRepository.GetRoomsByIdsAsync(request.RoomIds);
             if (rooms.Count() != request.RoomIds.Distinct().Count())
             {
-                throw new KeyNotFoundException("One or more rooms were not found.");
+                return Result<BookingResponse>.NotFound("One or more rooms were not found.");
             }
 
             var unavailableRooms = rooms.Where(r => !r.Availability).ToList();
             if (unavailableRooms.Any())
             {
-                throw new InvalidOperationException("One or more rooms are not available for the selected dates.");
+                return Result<BookingResponse>.ConflictError("One or more rooms are not available for the selected dates.");
             }
 
             var totalPrice = rooms.Sum(r => r.PricePerNight) * nights;
@@ -114,7 +115,7 @@ public class BookingService : IBookingService
             _logger.LogInformation("Booking {ConfirmationNumber} created for user {UserId}", confirmationNumber, userId);
 
             var createdBooking = await _bookingRepository.GetByIdWithDetailsAsync(booking.Id);
-            return MapToResponse(createdBooking!);
+            return Result<BookingResponse>.Success(MapToResponse(createdBooking!));
         }
         catch
         {
@@ -123,10 +124,10 @@ public class BookingService : IBookingService
         }
     }
 
-    public async Task<IEnumerable<RecentlyBookedHotelResponse>> GetRecentlyBookedHotelsAsync(int userId)
+    public async Task<Result<IEnumerable<RecentlyBookedHotelResponse>>> GetRecentlyBookedHotelsAsync(int userId)
     {
         var bookings = await _bookingRepository.GetByUserIdAsync(userId);
-        return bookings
+        var result = bookings
             .SelectMany(b => b.BookingRooms.Select(br => new RecentlyBookedHotelResponse
             {
                 HotelId = br.Room.Hotel.Id,
@@ -140,6 +141,8 @@ public class BookingService : IBookingService
             .DistinctBy(h => h.HotelId)
             .Take(5)
             .ToList();
+
+        return Result<IEnumerable<RecentlyBookedHotelResponse>>.Success(result);
     }
 
     private BookingResponse MapToResponse(Booking booking)

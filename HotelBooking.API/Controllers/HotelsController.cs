@@ -7,10 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBooking.API.Controllers;
 
-[ApiController]
 [Route("api/hotels")]
 [Authorize]
-public class HotelsController : ControllerBase
+public class HotelsController : ApiControllerBase
 {
     private readonly IHotelService _hotelService;
     private readonly IHotelImageService _hotelImageService;
@@ -28,8 +27,8 @@ public class HotelsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetAllHotels([FromQuery] PaginationRequest pagination)
     {
-        var hotels = await _hotelService.GetAllHotelsAsync(pagination);
-        return Ok(hotels);
+        var result = await _hotelService.GetAllHotelsAsync(pagination);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -41,8 +40,8 @@ public class HotelsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetHotelById(int id)
     {
-        var hotel = await _hotelService.GetHotelByIdAsync(id);
-        return Ok(hotel);
+        var result = await _hotelService.GetHotelByIdAsync(id);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -54,8 +53,8 @@ public class HotelsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateHotel([FromBody] HotelRequest request)
     {
-        var hotel = await _hotelService.CreateHotelAsync(request);
-        return CreatedAtAction(nameof(GetHotelById), new { id = hotel.Id }, hotel);
+        var result = await _hotelService.CreateHotelAsync(request);
+        return CreatedFromResult(result, nameof(GetHotelById), h => new { id = h.Id });
     }
 
     /// <summary>
@@ -68,8 +67,8 @@ public class HotelsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateHotel(int id, [FromBody] HotelRequest request)
     {
-        var hotel = await _hotelService.UpdateHotelAsync(id, request);
-        return Ok(hotel);
+        var result = await _hotelService.UpdateHotelAsync(id, request);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -81,8 +80,8 @@ public class HotelsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteHotel(int id)
     {
-        await _hotelService.DeleteHotelAsync(id);
-        return NoContent();
+        var result = await _hotelService.DeleteHotelAsync(id);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -94,8 +93,8 @@ public class HotelsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> SearchHotels([FromQuery] HotelSearchRequest request)
     {
-        var results = await _hotelService.SearchHotelsAsync(request);
-        return Ok(results);
+        var result = await _hotelService.SearchHotelsAsync(request);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -107,8 +106,8 @@ public class HotelsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetHotelDetails(int id)
     {
-        var hotel = await _hotelService.GetHotelDetailsAsync(id);
-        return Ok(hotel);
+        var result = await _hotelService.GetHotelDetailsAsync(id);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -120,8 +119,8 @@ public class HotelsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetHotelImages(int id)
     {
-        var images = await _hotelImageService.GetImagesByHotelIdAsync(id);
-        return Ok(images);
+        var result = await _hotelImageService.GetImagesByHotelIdAsync(id);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -135,8 +134,8 @@ public class HotelsController : ControllerBase
     public async Task<IActionResult> CreateHotelImage(int id, [FromBody] HotelImageRequest request)
     {
         request.HotelId = id;
-        var image = await _hotelImageService.CreateImageAsync(request);
-        return CreatedAtAction(nameof(GetHotelImages), new { id }, image);
+        var result = await _hotelImageService.CreateImageAsync(request);
+        return CreatedFromResult(result, nameof(GetHotelImages), _ => new { id });
     }
 
     /// <summary>
@@ -149,8 +148,8 @@ public class HotelsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateHotelImage(int imageId, [FromBody] HotelImageRequest request)
     {
-        var image = await _hotelImageService.UpdateImageAsync(imageId, request);
-        return Ok(image);
+        var result = await _hotelImageService.UpdateImageAsync(imageId, request);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -162,7 +161,7 @@ public class HotelsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteHotelImage(int imageId)
     {
-        await _hotelImageService.DeleteImageAsync(imageId);
-        return NoContent();
+        var result = await _hotelImageService.DeleteImageAsync(imageId);
+        return FromResult(result);
     }
 }

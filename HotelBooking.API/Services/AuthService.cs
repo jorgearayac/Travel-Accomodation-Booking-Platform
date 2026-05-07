@@ -1,3 +1,4 @@
+using HotelBooking.API.Common;
 using HotelBooking.API.DTOs.Auth;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Enums;
@@ -19,18 +20,18 @@ public class AuthService : IAuthService
         _logger = logger;
     }
 
-    public async Task<AuthResponse> RegisterUserAsync(RegisterRequest request)
+    public async Task<Result<AuthResponse>> RegisterUserAsync(RegisterRequest request)
     {
         var existingUser = await _userRepository.GetByUsernameAsync(request.Username);
         if (existingUser != null)
         {
-            throw new ArgumentException("Username already exists.");
+            return Result<AuthResponse>.ValidationError("Username already exists.");
         }
 
         var existingEmail = await _userRepository.GetByEmailAsync(request.Email);
         if (existingEmail != null)
         {
-            throw new ArgumentException("Email already exists.");
+            return Result<AuthResponse>.ValidationError("Email already exists.");
         }
 
         var user = new User
@@ -47,18 +48,18 @@ public class AuthService : IAuthService
 
         await _userRepository.AddAsync(user);
         _logger.LogInformation("User {Username} registered", request.Username);
-        return BuildAuthResponse(user);
+        return Result<AuthResponse>.Success(BuildAuthResponse(user));
     }
 
-    public async Task<AuthResponse> LoginUserAsync(LoginRequest request)
+    public async Task<Result<AuthResponse>> LoginUserAsync(LoginRequest request)
     {
         var user = await _userRepository.GetByUsernameAsync(request.Username);
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            throw new UnauthorizedAccessException("Invalid username or password.");
+            return Result<AuthResponse>.Unauthorized("Invalid username or password.");
         }
         _logger.LogInformation("User {Username} logged in", request.Username);
-        return BuildAuthResponse(user);
+        return Result<AuthResponse>.Success(BuildAuthResponse(user));
     }
 
     private AuthResponse BuildAuthResponse(User user)

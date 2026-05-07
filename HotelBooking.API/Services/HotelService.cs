@@ -1,3 +1,4 @@
+using HotelBooking.API.Common;
 using HotelBooking.API.DTOs.Hotels;
 using HotelBooking.API.DTOs.Pagination;
 using HotelBooking.API.DTOs.Reviews;
@@ -25,12 +26,12 @@ public class HotelService : IHotelService
         _logger = logger;
     }
 
-    public async Task<PaginationResponse<HotelResponse>> GetAllHotelsAsync(PaginationRequest pagination)
+    public async Task<Result<PaginationResponse<HotelResponse>>> GetAllHotelsAsync(PaginationRequest pagination)
     {
         var (hotels, totalCount) = await _hotelRepository.GetPaginatedWithRoomsAsync(pagination.PageNumber, pagination.PageSize);
         var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize);
 
-        return new PaginationResponse<HotelResponse>
+        return Result<PaginationResponse<HotelResponse>>.Success(new PaginationResponse<HotelResponse>
         {
             Items = hotels.Select(MapToResponse),
             TotalCount = totalCount,
@@ -39,25 +40,25 @@ public class HotelService : IHotelService
             TotalPages = totalPages,
             HasPreviousPage = pagination.PageNumber > 1,
             HasNextPage = pagination.PageNumber < totalPages
-        };
+        });
     }
 
-    public async Task<HotelResponse> GetHotelByIdAsync(int id)
+    public async Task<Result<HotelResponse>> GetHotelByIdAsync(int id)
     {
         var hotel = await _hotelRepository.GetByIdWithRoomsAsync(id);
         if (hotel == null)
         {
-            throw new KeyNotFoundException($"Hotel with Id {id} not found.");
+            return Result<HotelResponse>.NotFound($"Hotel with Id {id} not found.");
         }
-        return MapToResponse(hotel);
+        return Result<HotelResponse>.Success(MapToResponse(hotel));
     }
 
-    public async Task<HotelResponse> CreateHotelAsync(HotelRequest request)
+    public async Task<Result<HotelResponse>> CreateHotelAsync(HotelRequest request)
     {
         var city = await _cityRepository.GetByIdAsync(request.CityId);
         if (city == null)
         {
-            throw new KeyNotFoundException($"City with Id {request.CityId} not found.");
+            return Result<HotelResponse>.NotFound($"City with Id {request.CityId} not found.");
         }
 
         var hotel = new Hotel
@@ -76,15 +77,15 @@ public class HotelService : IHotelService
         };
         await _hotelRepository.AddAsync(hotel);
         _logger.LogInformation("Hotel {HotelName} created in city {CityId}", request.Name, request.CityId);
-        return MapToResponse(hotel);
+        return Result<HotelResponse>.Success(MapToResponse(hotel));
     }
 
-    public async Task<HotelResponse> UpdateHotelAsync(int id, HotelRequest request)
+    public async Task<Result<HotelResponse>> UpdateHotelAsync(int id, HotelRequest request)
     {
         var hotel = await _hotelRepository.GetByIdAsync(id);
         if (hotel == null)
         {
-            throw new KeyNotFoundException($"Hotel with Id {id} not found.");
+            return Result<HotelResponse>.NotFound($"Hotel with Id {id} not found.");
         }
         hotel.CityId = request.CityId;
         hotel.Name = request.Name;
@@ -98,36 +99,31 @@ public class HotelService : IHotelService
         hotel.UpdatedDate = DateTime.UtcNow;
 
         await _hotelRepository.UpdateAsync(hotel);
-        return MapToResponse(hotel);
+        return Result<HotelResponse>.Success(MapToResponse(hotel));
     }
 
-    public async Task DeleteHotelAsync(int id)
+    public async Task<Result> DeleteHotelAsync(int id)
     {
         var hotel = await _hotelRepository.GetByIdAsync(id);
         if (hotel == null)
         {
-            throw new KeyNotFoundException($"Hotel with Id {id} not found.");
+            return Result.NotFound($"Hotel with Id {id} not found.");
         }
         await _hotelRepository.DeleteAsync(hotel);
         _logger.LogInformation("Hotel {HotelId} deleted", id);
+        return Result.Success();
     }
 
-    public async Task<PaginationResponse<HotelResponse>> SearchHotelsAsync(HotelSearchRequest request)
+    public async Task<Result<PaginationResponse<HotelResponse>>> SearchHotelsAsync(HotelSearchRequest request)
     {
         var (hotels, totalCount) = await _hotelRepository.SearchAsync(
-            request.Query,
-            request.MinPrice,
-            request.MaxPrice,
-            request.StarRate,
-            request.RoomType,
-            request.Adults,
-            request.Children,
-            request.PageNumber,
-            request.PageSize);
+            request.Query, request.MinPrice, request.MaxPrice, request.StarRate,
+            request.RoomType, request.Adults, request.Children,
+            request.PageNumber, request.PageSize);
 
         var totalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize);
 
-        return new PaginationResponse<HotelResponse>
+        return Result<PaginationResponse<HotelResponse>>.Success(new PaginationResponse<HotelResponse>
         {
             Items = hotels.Select(MapToResponse),
             TotalCount = totalCount,
@@ -136,17 +132,17 @@ public class HotelService : IHotelService
             TotalPages = totalPages,
             HasPreviousPage = request.PageNumber > 1,
             HasNextPage = request.PageNumber < totalPages
-        };
+        });
     }
 
-    public async Task<HotelDetailsResponse> GetHotelDetailsAsync(int id)
+    public async Task<Result<HotelDetailsResponse>> GetHotelDetailsAsync(int id)
     {
         var hotel = await _hotelRepository.GetByIdWithFullDetailsAsync(id);
         if (hotel == null)
         {
-            throw new KeyNotFoundException($"Hotel with Id {id} not found.");
+            return Result<HotelDetailsResponse>.NotFound($"Hotel with Id {id} not found.");
         }
-        return MapToDetailsResponse(hotel);
+        return Result<HotelDetailsResponse>.Success(MapToDetailsResponse(hotel));
     }
 
     private HotelResponse MapToResponse(Hotel hotel)
@@ -184,30 +180,21 @@ public class HotelService : IHotelService
             CityName = hotel.City?.Name ?? string.Empty,
             Images = hotel.HotelImages?.Select(hi => new HotelImageResponse
             {
-                Id = hi.Id,
-                ImageUrl = hi.ImageUrl,
-                Caption = hi.Caption
+                Id = hi.Id, ImageUrl = hi.ImageUrl, Caption = hi.Caption
             }).ToList() ?? new List<HotelImageResponse>(),
             Reviews = hotel.Reviews?.Select(r => new ReviewResponse
             {
-                Id = r.Id,
-                UserId = r.UserId,
+                Id = r.Id, UserId = r.UserId,
                 Username = r.User?.Username ?? "Unknown User",
                 HotelId = r.HotelId,
                 HotelName = r.Hotel?.Name ?? "Unknown Hotel",
-                Rating = r.Rating,
-                Comment = r.Comment,
-                CreatedDate = r.CreatedDate
+                Rating = r.Rating, Comment = r.Comment, CreatedDate = r.CreatedDate
             }).ToList() ?? new List<ReviewResponse>(),
             AvailableRooms = hotel.Rooms?.Where(r => r.Availability).Select(r => new RoomResponse
             {
-                Id = r.Id,
-                RoomNumber = r.RoomNumber,
-                RoomType = r.RoomType,
-                AdultCapacity = r.AdultCapacity,
-                ChildCapacity = r.ChildCapacity,
-                Description = r.Description,
-                PricePerNight = r.PricePerNight,
+                Id = r.Id, RoomNumber = r.RoomNumber, RoomType = r.RoomType,
+                AdultCapacity = r.AdultCapacity, ChildCapacity = r.ChildCapacity,
+                Description = r.Description, PricePerNight = r.PricePerNight,
                 ThumbnailUrl = r.ThumbnailUrl
             }).ToList() ?? new List<RoomResponse>()
         };

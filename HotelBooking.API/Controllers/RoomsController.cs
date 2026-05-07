@@ -6,10 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBooking.API.Controllers;
 
-[ApiController]
 [Route("api/rooms")]
 [Authorize]
-public class RoomsController : ControllerBase
+public class RoomsController : ApiControllerBase
 {
     private readonly IRoomService _roomService;
     public RoomsController(IRoomService roomService)
@@ -25,8 +24,8 @@ public class RoomsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllRooms([FromQuery] PaginationRequest pagination)
     {
-        var rooms = await _roomService.GetAllRoomsAsync(pagination);
-        return Ok(rooms);
+        var result = await _roomService.GetAllRoomsAsync(pagination);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -37,8 +36,8 @@ public class RoomsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetRoomById(int id)
     {
-        var room = await _roomService.GetRoomByIdAsync(id);
-        return Ok(room);
+        var result = await _roomService.GetRoomByIdAsync(id);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -50,8 +49,8 @@ public class RoomsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateRoom([FromBody] RoomRequest request)
     {
-        var room = await _roomService.CreateRoomAsync(request);
-        return CreatedAtAction(nameof(GetRoomById), new { id = room.Id }, room);
+        var result = await _roomService.CreateRoomAsync(request);
+        return CreatedFromResult(result, nameof(GetRoomById), r => new { id = r.Id });
     }
 
     /// <summary>
@@ -64,8 +63,8 @@ public class RoomsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateRoom(int id, [FromBody] RoomRequest request)
     {
-        var room = await _roomService.UpdateRoomAsync(id, request);
-        return Ok(room);
+        var result = await _roomService.UpdateRoomAsync(id, request);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -77,7 +76,7 @@ public class RoomsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteRoom(int id)
     {
-        await _roomService.DeleteRoomAsync(id);
-        return NoContent();
+        var result = await _roomService.DeleteRoomAsync(id);
+        return FromResult(result);
     }
 }

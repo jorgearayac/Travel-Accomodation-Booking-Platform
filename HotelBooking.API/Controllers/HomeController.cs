@@ -1,13 +1,11 @@
 using HotelBooking.API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace HotelBooking.API.Controllers;
 
-[ApiController]
 [Route("api/home")]
-public class HomeController : ControllerBase
+public class HomeController : ApiControllerBase
 {
     private readonly IFeaturedDealService _featuredDealService;
     private readonly IBookingService _bookingService;
@@ -28,8 +26,8 @@ public class HomeController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetFeaturedDeals()
     {
-        var deals = await _featuredDealService.GetAllFeaturedDealsAsync();
-        return Ok(deals);
+        var result = await _featuredDealService.GetAllFeaturedDealsAsync();
+        return FromResult(result);
     }
 
     /// <summary>
@@ -40,11 +38,9 @@ public class HomeController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetRecentlyBooked()
     {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException("User identity not found.");
-        var userId = int.Parse(claim.Value);
-        var recentHotels = await _bookingService.GetRecentlyBookedHotelsAsync(userId);
-        return Ok(recentHotels);
+        var userId = GetCurrentUserId();
+        var result = await _bookingService.GetRecentlyBookedHotelsAsync(userId);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -55,7 +51,7 @@ public class HomeController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetTrendingDestinations()
     {
-        var destinations = await _cityService.GetTrendingDestinationsAsync();
-        return Ok(destinations);
+        var result = await _cityService.GetTrendingDestinationsAsync();
+        return FromResult(result);
     }
 }

@@ -1,3 +1,4 @@
+using HotelBooking.API.Common;
 using HotelBooking.API.DTOs.Reviews;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Interfaces;
@@ -21,24 +22,24 @@ public class ReviewService : IReviewService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<ReviewResponse>> GetReviewsByHotelIdAsync(int hotelId)
+    public async Task<Result<IEnumerable<ReviewResponse>>> GetReviewsByHotelIdAsync(int hotelId)
     {
         var reviews = await _reviewRepository.GetByHotelIdAsync(hotelId);
-        return reviews.Select(MapToResponse);
+        return Result<IEnumerable<ReviewResponse>>.Success(reviews.Select(MapToResponse));
     }
 
-    public async Task<ReviewResponse> CreateReviewAsync(int userId, CreateReviewRequest request)
+    public async Task<Result<ReviewResponse>> CreateReviewAsync(int userId, CreateReviewRequest request)
     {
         var hotel = await _hotelRepository.GetByIdAsync(request.HotelId);
         if (hotel == null)
         {
-            throw new KeyNotFoundException($"Hotel with Id {request.HotelId} not found.");
+            return Result<ReviewResponse>.NotFound($"Hotel with Id {request.HotelId} not found.");
         }
 
         var existingReview = await _reviewRepository.GetByUserAndHotelAsync(userId, request.HotelId);
         if (existingReview != null)
         {
-            throw new InvalidOperationException("You have already reviewed this hotel.");
+            return Result<ReviewResponse>.ConflictError("You have already reviewed this hotel.");
         }
 
         var review = new Review
@@ -55,24 +56,25 @@ public class ReviewService : IReviewService
         _logger.LogInformation("Review created by user {UserId} for hotel {HotelId}", userId, request.HotelId);
 
         var createdReview = await _reviewRepository.GetByIdWithUserAsync(review.Id);
-        return MapToResponse(createdReview!);
+        return Result<ReviewResponse>.Success(MapToResponse(createdReview!));
     }
 
-    public async Task DeleteReviewAsync(int userId, int reviewId)
+    public async Task<Result> DeleteReviewAsync(int userId, int reviewId)
     {
         var review = await _reviewRepository.GetByIdWithUserAsync(reviewId);
         if (review == null)
         {
-            throw new KeyNotFoundException($"Review with id {reviewId} not found.");
+            return Result.NotFound($"Review with id {reviewId} not found.");
         }
 
         if (review.UserId != userId)
         {
-            throw new UnauthorizedAccessException("You can only delete your own reviews.");
+            return Result.Unauthorized("You can only delete your own reviews.");
         }
 
         await _reviewRepository.DeleteAsync(review);
         _logger.LogInformation("Review {ReviewId} deleted by user {UserId}", reviewId, userId);
+        return Result.Success();
     }
 
     private ReviewResponse MapToResponse(Review review)

@@ -1,3 +1,4 @@
+using HotelBooking.API.Common;
 using HotelBooking.API.DTOs.Pagination;
 using HotelBooking.API.DTOs.Rooms;
 using HotelBooking.API.Interfaces;
@@ -22,12 +23,12 @@ public class RoomService : IRoomService
         _logger = logger;
     }
 
-    public async Task<PaginationResponse<RoomResponse>> GetAllRoomsAsync(PaginationRequest pagination)
+    public async Task<Result<PaginationResponse<RoomResponse>>> GetAllRoomsAsync(PaginationRequest pagination)
     {
         var (rooms, totalCount) = await _roomRepository.GetPaginatedAsync(pagination.PageNumber, pagination.PageSize);
         var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize);
 
-        return new PaginationResponse<RoomResponse>
+        return Result<PaginationResponse<RoomResponse>>.Success(new PaginationResponse<RoomResponse>
         {
             Items = rooms.Select(MapToResponse),
             TotalCount = totalCount,
@@ -36,25 +37,25 @@ public class RoomService : IRoomService
             TotalPages = totalPages,
             HasPreviousPage = pagination.PageNumber > 1,
             HasNextPage = pagination.PageNumber < totalPages
-        };
+        });
     }
 
-    public async Task<RoomResponse> GetRoomByIdAsync(int id)
+    public async Task<Result<RoomResponse>> GetRoomByIdAsync(int id)
     {
         var room = await _roomRepository.GetByIdAsync(id);
         if (room == null)
         {
-            throw new KeyNotFoundException($"Room with Id {id} not found.");
+            return Result<RoomResponse>.NotFound($"Room with Id {id} not found.");
         }
-        return MapToResponse(room);
+        return Result<RoomResponse>.Success(MapToResponse(room));
     }
 
-    public async Task<RoomResponse> CreateRoomAsync(RoomRequest request)
+    public async Task<Result<RoomResponse>> CreateRoomAsync(RoomRequest request)
     {
         var hotel = await _hotelRepository.GetByIdAsync(request.HotelId);
         if (hotel == null)
         {
-            throw new KeyNotFoundException($"Hotel with Id {request.HotelId} not found.");
+            return Result<RoomResponse>.NotFound($"Hotel with Id {request.HotelId} not found.");
         }
 
         var room = new Room
@@ -73,15 +74,15 @@ public class RoomService : IRoomService
         };
         await _roomRepository.AddAsync(room);
         _logger.LogInformation("Room {RoomNumber} created for hotel {HotelId}", request.RoomNumber, request.HotelId);
-        return MapToResponse(room);
+        return Result<RoomResponse>.Success(MapToResponse(room));
     }
 
-    public async Task<RoomResponse> UpdateRoomAsync(int id, RoomRequest request)
+    public async Task<Result<RoomResponse>> UpdateRoomAsync(int id, RoomRequest request)
     {
         var room = await _roomRepository.GetByIdAsync(id);
         if (room == null)
         {
-            throw new KeyNotFoundException($"Room with Id {id} not found.");
+            return Result<RoomResponse>.NotFound($"Room with Id {id} not found.");
         }
         room.HotelId = request.HotelId;
         room.RoomNumber = request.RoomNumber;
@@ -95,18 +96,19 @@ public class RoomService : IRoomService
         room.UpdatedDate = DateTime.UtcNow;
 
         await _roomRepository.UpdateAsync(room);
-        return MapToResponse(room);
+        return Result<RoomResponse>.Success(MapToResponse(room));
     }
 
-    public async Task DeleteRoomAsync(int id)
+    public async Task<Result> DeleteRoomAsync(int id)
     {
         var room = await _roomRepository.GetByIdAsync(id);
         if (room == null)
         {
-            throw new KeyNotFoundException($"Room with Id {id} not found.");
+            return Result.NotFound($"Room with Id {id} not found.");
         }
         await _roomRepository.DeleteAsync(room);
         _logger.LogInformation("Room {RoomId} deleted", id);
+        return Result.Success();
     }
 
     private RoomResponse MapToResponse(Room room)

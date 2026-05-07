@@ -1,3 +1,4 @@
+using HotelBooking.API.Common;
 using HotelBooking.API.DTOs.FeaturedDeals;
 using HotelBooking.API.Interfaces;
 using HotelBooking.Db.Interfaces;
@@ -21,33 +22,33 @@ public class FeaturedDealService : IFeaturedDealService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<FeaturedDealResponse>> GetAllFeaturedDealsAsync()
+    public async Task<Result<IEnumerable<FeaturedDealResponse>>> GetAllFeaturedDealsAsync()
     {
         var deals = await _featuredDealRepository.GetAllWithHotelAndCityAsync();
-        return deals.Take(5).Select(MapToResponse);
+        return Result<IEnumerable<FeaturedDealResponse>>.Success(deals.Take(5).Select(MapToResponse));
     }
 
-    public async Task<FeaturedDealResponse?> GetFeaturedDealByIdAsync(int id)
+    public async Task<Result<FeaturedDealResponse>> GetFeaturedDealByIdAsync(int id)
     {
         var deal = await _featuredDealRepository.GetByIdWithHotelAndCityAsync(id);
         if (deal == null)
         {
-            throw new KeyNotFoundException($"Featured deal with Id {id} not found.");
+            return Result<FeaturedDealResponse>.NotFound($"Featured deal with Id {id} not found.");
         }
-        return MapToResponse(deal);
+        return Result<FeaturedDealResponse>.Success(MapToResponse(deal));
     }
 
-    public async Task<FeaturedDealResponse> CreateFeaturedDealAsync(FeaturedDealRequest request)
+    public async Task<Result<FeaturedDealResponse>> CreateFeaturedDealAsync(FeaturedDealRequest request)
     {
         var hotel = await _hotelRepository.GetByIdAsync(request.HotelId);
         if (hotel == null)
         {
-            throw new KeyNotFoundException($"Hotel with Id {request.HotelId} not found.");
+            return Result<FeaturedDealResponse>.NotFound($"Hotel with Id {request.HotelId} not found.");
         }
 
         if (request.DiscountedPrice >= request.OriginalPrice)
         {
-            throw new ArgumentException("Discounted price must be less than the original price.");
+            return Result<FeaturedDealResponse>.ValidationError("Discounted price must be less than the original price.");
         }
 
         var deal = new FeaturedDeal
@@ -64,20 +65,20 @@ public class FeaturedDealService : IFeaturedDealService
         _logger.LogInformation("Featured deal created for hotel {HotelId}", request.HotelId);
 
         var createdDeal = await _featuredDealRepository.GetByIdWithHotelAndCityAsync(deal.Id);
-        return MapToResponse(createdDeal!);
+        return Result<FeaturedDealResponse>.Success(MapToResponse(createdDeal!));
     }
 
-    public async Task<FeaturedDealResponse?> UpdateFeaturedDealAsync(int id, FeaturedDealRequest request)
+    public async Task<Result<FeaturedDealResponse>> UpdateFeaturedDealAsync(int id, FeaturedDealRequest request)
     {
         var deal = await _featuredDealRepository.GetByIdAsync(id);
         if (deal == null)
         {
-            throw new KeyNotFoundException($"Featured deal with Id {id} not found.");
+            return Result<FeaturedDealResponse>.NotFound($"Featured deal with Id {id} not found.");
         }
 
         if (request.DiscountedPrice >= request.OriginalPrice)
         {
-            throw new ArgumentException("Discounted price must be less than the original price.");
+            return Result<FeaturedDealResponse>.ValidationError("Discounted price must be less than the original price.");
         }
 
         deal.HotelId = request.HotelId;
@@ -89,18 +90,19 @@ public class FeaturedDealService : IFeaturedDealService
         await _featuredDealRepository.UpdateAsync(deal);
 
         var updatedDeal = await _featuredDealRepository.GetByIdWithHotelAndCityAsync(deal.Id);
-        return MapToResponse(updatedDeal!);
+        return Result<FeaturedDealResponse>.Success(MapToResponse(updatedDeal!));
     }
 
-    public async Task DeleteFeaturedDealAsync(int id)
+    public async Task<Result> DeleteFeaturedDealAsync(int id)
     {
         var deal = await _featuredDealRepository.GetByIdAsync(id);
         if (deal == null)
         {
-            throw new KeyNotFoundException($"Featured deal with Id {id} not found.");
+            return Result.NotFound($"Featured deal with Id {id} not found.");
         }
         await _featuredDealRepository.DeleteAsync(deal);
         _logger.LogInformation("Featured deal {DealId} deleted", id);
+        return Result.Success();
     }
 
     private FeaturedDealResponse MapToResponse(FeaturedDeal deal)

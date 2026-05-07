@@ -1,3 +1,4 @@
+using HotelBooking.API.Common;
 using HotelBooking.API.DTOs.Auth;
 using HotelBooking.API.Interfaces;
 using HotelBooking.API.Services;
@@ -42,13 +43,13 @@ public class AuthServiceTests
             new LoginRequest { Username = "jorge", Password = "TestPassword" });
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal("jorge", result.Username);
-        Assert.Equal("fake-jwt-token", result.Token);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("jorge", result.Value!.Username);
+        Assert.Equal("fake-jwt-token", result.Value.Token);
     }
 
     [Fact]
-    public async Task LoginUserAsync_WithInvalidPassword_ThrowsUnauthorized()
+    public async Task LoginUserAsync_WithInvalidPassword_ReturnsUnauthorized()
     {
         // Arrange
         var user = CreateTestUser("jorge", "CorrectPassword");
@@ -57,24 +58,30 @@ public class AuthServiceTests
             .Setup(r => r.GetByUsernameAsync("jorge"))
             .ReturnsAsync(user);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _authService.LoginUserAsync(
-                new LoginRequest { Username = "jorge", Password = "WrongPassword" }));
+        // Act
+        var result = await _authService.LoginUserAsync(
+            new LoginRequest { Username = "jorge", Password = "WrongPassword" });
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Unauthorized, result.Error!.Type);
     }
 
     [Fact]
-    public async Task LoginUserAsync_WithNonExistentUser_ThrowsUnauthorized()
+    public async Task LoginUserAsync_WithNonExistentUser_ReturnsUnauthorized()
     {
-        // Arrange - GetByUsernameAsync returns null for non-existent user
+        // Arrange
         _mockUserRepo
             .Setup(r => r.GetByUsernameAsync("nonexistent"))
             .ReturnsAsync((User?)null);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _authService.LoginUserAsync(
-                new LoginRequest { Username = "nonexistent", Password = "AnyPassword" }));
+        // Act
+        var result = await _authService.LoginUserAsync(
+            new LoginRequest { Username = "nonexistent", Password = "AnyPassword" });
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Unauthorized, result.Error!.Type);
     }
 
     [Fact]
@@ -83,7 +90,7 @@ public class AuthServiceTests
         // Arrange
         _mockUserRepo
             .Setup(r => r.GetByUsernameAsync("newuser"))
-            .ReturnsAsync((User?)null); // No existing user
+            .ReturnsAsync((User?)null);
 
         _mockUserRepo
             .Setup(r => r.GetByEmailAsync("newuser@example.com"))
@@ -91,7 +98,7 @@ public class AuthServiceTests
 
         _mockUserRepo
             .Setup(r => r.AddAsync(It.IsAny<User>()))
-            .ReturnsAsync((User u) => u); // Return the user that was added
+            .ReturnsAsync((User u) => u);
 
         _mockTokenService
             .Setup(t => t.GenerateToken(It.IsAny<User>()))
@@ -109,16 +116,16 @@ public class AuthServiceTests
         var result = await _authService.RegisterUserAsync(request);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal("newuser", result.Username);
-        Assert.Equal("new-user-jwt-token", result.Token);
-        Assert.Equal("User", result.Role);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("newuser", result.Value!.Username);
+        Assert.Equal("new-user-jwt-token", result.Value.Token);
+        Assert.Equal("User", result.Value.Role);
         _mockUserRepo
             .Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
     }
 
     [Fact]
-    public async Task RegisterUserAsync_WithExistingUsername_ThrowsArgumentException()
+    public async Task RegisterUserAsync_WithExistingUsername_ReturnsValidationError()
     {
         // Arrange
         var existingUser = CreateTestUser("existingUser", "TestPassword");
@@ -126,48 +133,52 @@ public class AuthServiceTests
             .Setup(r => r.GetByUsernameAsync("existingUser"))
             .ReturnsAsync(existingUser);
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-            _authService.RegisterUserAsync(new RegisterRequest
-            {
-                Username = "existingUser",
-                Password = "AnyPassword",
-                Email = "new@example.com",
-                FirstName = "Existing",
-                LastName = "User"
-            }));
+        // Act
+        var result = await _authService.RegisterUserAsync(new RegisterRequest
+        {
+            Username = "existingUser",
+            Password = "AnyPassword",
+            Email = "new@example.com",
+            FirstName = "Existing",
+            LastName = "User"
+        });
 
-        Assert.Contains("Username", exception.Message);
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Validation, result.Error!.Type);
+        Assert.Contains("Username", result.Error.Message);
         _mockUserRepo
             .Verify(r => r.AddAsync(It.IsAny<User>()), Times.Never);
     }
 
     [Fact]
-    public async Task RegisterUserAsync_WithExistingEmail_ThrowsArgumentException()
+    public async Task RegisterUserAsync_WithExistingEmail_ReturnsValidationError()
     {
         // Arrange
         _mockUserRepo
             .Setup(r => r.GetByUsernameAsync("newuser"))
-            .ReturnsAsync((User?)null); // username is available
+            .ReturnsAsync((User?)null);
 
         var existingUser = CreateTestUser("anotherUser", "TestPassword");
 
         _mockUserRepo
             .Setup(r => r.GetByEmailAsync("existing@example.com"))
-            .ReturnsAsync(existingUser); // email is already in use
+            .ReturnsAsync(existingUser);
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-            _authService.RegisterUserAsync(new RegisterRequest
-            {
-                Username = "newuser",
-                Password = "TestPassword",
-                Email = "existing@example.com",
-                FirstName = "New",
-                LastName = "User"
-            }));
+        // Act
+        var result = await _authService.RegisterUserAsync(new RegisterRequest
+        {
+            Username = "newuser",
+            Password = "TestPassword",
+            Email = "existing@example.com",
+            FirstName = "New",
+            LastName = "User"
+        });
 
-        Assert.Contains("Email", exception.Message);
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Validation, result.Error!.Type);
+        Assert.Contains("Email", result.Error.Message);
         _mockUserRepo
             .Verify(r => r.AddAsync(It.IsAny<User>()), Times.Never);
     }

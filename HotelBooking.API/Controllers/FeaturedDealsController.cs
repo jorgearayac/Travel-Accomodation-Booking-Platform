@@ -5,10 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBooking.API.Controllers;
 
-[ApiController]
 [Route("api/featured-deals")]
 [Authorize]
-public class FeaturedDealsController : ControllerBase
+public class FeaturedDealsController : ApiControllerBase
 {
     private readonly IFeaturedDealService _featuredDealService;
     public FeaturedDealsController(IFeaturedDealService featuredDealService)
@@ -24,22 +23,22 @@ public class FeaturedDealsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetAllFeaturedDeals()
     {
-        var deals = await _featuredDealService.GetAllFeaturedDealsAsync();
-        return Ok(deals);
+        var result = await _featuredDealService.GetAllFeaturedDealsAsync();
+        return FromResult(result);
     }
 
     /// <summary>
     /// Retrieves the featured deal that matches the specified identifier.
     /// </summary>
     /// <param name="id">The Id of the featured deal to search for.</param>
-    /// <returns>An <see cref="OkObjectResult"> containing the featured deal if found; 
+    /// <returns>An <see cref="OkObjectResult"> containing the featured deal if found;
     /// otherwise, a <see cref="NotFoundObjectResult"> result.</returns>
     [HttpGet("{id}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetFeaturedDealById(int id)
     {
-        var deal = await _featuredDealService.GetFeaturedDealByIdAsync(id);
-        return Ok(deal);
+        var result = await _featuredDealService.GetFeaturedDealByIdAsync(id);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -51,8 +50,8 @@ public class FeaturedDealsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateFeaturedDeal([FromBody] FeaturedDealRequest request)
     {
-        var deal = await _featuredDealService.CreateFeaturedDealAsync(request);
-        return CreatedAtAction(nameof(GetFeaturedDealById), new { id = deal.Id }, deal);
+        var result = await _featuredDealService.CreateFeaturedDealAsync(request);
+        return CreatedFromResult(result, nameof(GetFeaturedDealById), d => new { id = d.Id });
     }
 
     /// <summary>
@@ -60,14 +59,14 @@ public class FeaturedDealsController : ControllerBase
     /// </summary>
     /// <param name="id">The Id of the featured deal to update.</param>
     /// <param name="request">The details of the featured deal to update. Must not be null.</param>
-    /// <returns>An <see cref="OkObjectResult"> containing the updated featured deal if the operation is successful; 
+    /// <returns>An <see cref="OkObjectResult"> containing the updated featured deal if the operation is successful;
     /// otherwise, a <see cref="NotFoundObjectResult">.</returns>
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateFeaturedDeal(int id, [FromBody] FeaturedDealRequest request)
     {
-        var deal = await _featuredDealService.UpdateFeaturedDealAsync(id, request);
-        return Ok(deal);
+        var result = await _featuredDealService.UpdateFeaturedDealAsync(id, request);
+        return FromResult(result);
     }
 
     /// <summary>
@@ -79,7 +78,7 @@ public class FeaturedDealsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteFeaturedDeal(int id)
     {
-        await _featuredDealService.DeleteFeaturedDealAsync(id);
-        return NoContent();
+        var result = await _featuredDealService.DeleteFeaturedDealAsync(id);
+        return FromResult(result);
     }
 }
