@@ -14,8 +14,9 @@ A RESTful API for an online hotel booking system built with ASP.NET Core Web API
 
 ## Project Structure
 ```
-HotelBooking.API/        - API layer (controllers, services, DTOs middleware)
-- Controllers/           - API endpoints
+HotelBooking.API/        - API layer (controllers, services, DTOs, middleware)
+- Common/                - Shared types (Result<T> pattern)
+- Controllers/           - API endpoints (inherit ApiControllerBase)
 - DTOs/                  - Data Transfer Objects (request/response models)
 - Extensions/            - Program extension methods
 - Interfaces/            - Service contracts
@@ -25,7 +26,7 @@ HotelBooking.API/        - API layer (controllers, services, DTOs middleware)
 
 HotelBooking.Db/         - Domain layer (entities, repositories, database)
 - Data/                  - DbContext and entity configurations
-   - Configurations/     - EF Core entity type configurations
+   - Configurations/     - EF Core Fluent API configurations (constraints, indexes)
 - Enums/                 - Domain enumerations
 - Interfaces/            - Repository contracts
 - Models/                - Entity models
@@ -85,14 +86,17 @@ The database is seeded with an admin user:
 - **Password:** adminpassword
 
 ### Registration & Login
-You can register you own user with POST `/api/auth/register` in the format:
+Register a new user with POST `/api/auth/register`:
 ```json
 {
     "username": "<your-username>",
-    "password": "<your-password>"
+    "password": "<your-password>",
+    "email": "<your-email>",
+    "firstName": "<first-name>",
+    "lastName": "<last-name>"
 }
 ```
-Then login in POST `/api/auth/login` with your credentials. A JWT token will be provided so you can authenticate.
+Then login with POST `/api/auth/login` using your credentials. A JWT token will be returned for use in subsequent requests.
 ## API Endpoints
 
 ### Authentication
@@ -196,30 +200,41 @@ The API uses JWT Bearer tokens. To access protected endpoints:
 - **Admin** — can manage cities, hotels, rooms, featured deals
 
 ## Error Handling
-The API uses a global exception handler with `IExceptionHandler` that returns standardized `ProblemDetails` responses:
+
+Services return a `Result<T>` / `Result` type instead of throwing exceptions. Controllers translate results to HTTP responses via the shared `ApiControllerBase.ToProblem()` helper.
+
+| Error type | HTTP status |
+|---|---|
+| `NotFound` | 404 |
+| `Validation` | 400 |
+| `Conflict` | 409 |
+| `Unauthorized` | 403 |
+
+All error responses follow the RFC 9457 `ProblemDetails` format:
 
 ```json
 {
   "status": 404,
-  "title": "City with Id 999 not found.",
-  "instance": "/api/cities/999",
-  "timestamp": "2025-08-01T12:00:00Z"
+  "detail": "Booking with Id 99 not found.",
+  "instance": "/api/booking/99"
 }
 ```
 
 ## Architecture
-The project follows a **Layered Architecture** with DDD principles:
+The project follows a **Layered Architecture**:
 
-- Controller (API)
-  - Service (Business logic)
-    - Repository (Data access)
-      - DbContext (Database)
+```
+Controller → Service → Repository → DbContext (SQL Server)
+```
 
-Key features:
-- **Generic Repository Pattern:** base CRUD operations shared across all entities
-- **Dependency Injection:** all layers communicate through interfaces
-- **DTO Pattern:** domain models are never exposed directly through the API
-- **Price captured:** room prices are captured at booking time (PriceAtBooking)
+Key design decisions:
+- **Result pattern:** services return `Result<T>` — no exception-based control flow. Controllers map error types to HTTP status codes in one place (`ApiControllerBase`).
+- **Generic Repository Pattern:** base CRUD operations shared across all entities via `Repository<T>`.
+- **Dependency Injection:** all layers communicate through interfaces; DI registration centralised in `Extensions/`.
+- **DTO Pattern:** domain models are never exposed directly — all API contracts use DTOs.
+- **Price snapshotting:** room price is captured at booking time in the `BookingRoom.PriceAtBooking` field.
+- **Transactional booking:** room availability update and booking creation are wrapped in a single DB transaction.
+- **DB-level integrity:** business rules (date ranges, positive prices, uniqueness constraints) are enforced as SQL check constraints and unique indexes in addition to application validation.
 
 ## Testing
 Run the tests:
@@ -227,10 +242,18 @@ Run the tests:
 dotnet test
 ```
 
+Run a specific test class or method:
+```bash
+dotnet test --filter "FullyQualifiedName~BookingServiceTests"
+dotnet test --filter "FullyQualifiedName~BookingServiceTests.CreateBooking_ShouldThrow_WhenCheckInDateIsInThePast"
+```
+
 Tests cover:
-- **AuthService:** login, registration, duplicate user checks
-- **BookingService:** date validation, price calculation, room availability
-- **ReviewService:** duplicate prevention, ownership validation
+- **AuthService:** registration, login, duplicate username/email checks
+- **BookingService:** date validation, price calculation, room availability, Result error types
+- **ReviewService:** duplicate prevention, ownership validation, hotel existence check
+
+Tests use Moq for repository mocks and an in-memory `DbContext` (isolated per test via `Guid` DB name) for transaction-aware service tests.
 
 ## Entity Relationships
 - A **City** has many Hotels
